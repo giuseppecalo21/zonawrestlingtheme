@@ -383,3 +383,25 @@ function zw_parse_result_title( $title ) {
 	}
 	return array( 'show' => $title, 'date' => '' );
 }
+
+/**
+ * Logo del sito: quello caricato in Personalizza → Identità del sito → Logo
+ * (deve essere adatto a uno sfondo scuro, come quello attuale bianco e rosso).
+ * Senza logo caricato resta la scritta "ZONAWRESTLING.NET".
+ *
+ * @param string $class Classi dell'immagine (altezza).
+ */
+function zw_logo( $class = 'h-9 sm:h-10 w-auto' ) {
+	$logo_id = (int) get_theme_mod( 'custom_logo' );
+	if ( $logo_id && wp_attachment_is_image( $logo_id ) ) {
+		return wp_get_attachment_image( $logo_id, 'medium_large', false, array(
+			'class'    => $class,
+			'loading'  => 'eager',
+			'decoding' => 'async',
+			'alt'      => get_bloginfo( 'name' ),
+			'sizes'    => '240px',
+		) );
+	}
+	return '<span class="w-10 h-10 rounded-2xl bg-zw-red flex items-center justify-center font-sofia font-black text-xl text-white nf-red-glow shrink-0">ZW</span>'
+		. '<span class="font-sofia font-black text-xl text-white tracking-tight">ZONA<span class="text-zw-red">WRESTLING</span><span class="text-white/45 text-sm">.NET</span></span>';
+}

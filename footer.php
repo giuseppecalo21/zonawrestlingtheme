@@ -12,9 +12,15 @@ $zw_items  = function_exists( 'zw_menu_items' ) ? zw_menu_items() : array();
 		<div class="max-w-[1380px] mx-auto">
 			<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
 				<div class="flex items-center gap-3.5">
-					<span class="w-10 h-10 rounded-2xl bg-zw-red flex items-center justify-center font-sofia font-black text-xl text-white shrink-0">ZW</span>
+					<?php if ( ! has_custom_logo() ) : ?>
+						<span class="w-10 h-10 rounded-2xl bg-zw-red flex items-center justify-center font-sofia font-black text-xl text-white shrink-0">ZW</span>
+					<?php endif; ?>
 					<div>
-						<span class="font-sofia font-black text-xl text-white">ZONA<span class="text-zw-red">WRESTLING</span>.NET</span>
+						<?php if ( has_custom_logo() ) : ?>
+							<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="inline-block" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — Home"><?php echo zw_logo( 'h-10 w-auto max-w-[240px] object-contain' ); // phpcs:ignore ?></a>
+						<?php else : ?>
+							<span class="font-sofia font-black text-xl text-white">ZONA<span class="text-zw-red">WRESTLING</span>.NET</span>
+						<?php endif; ?>
 						<?php if ( zw_opt( 'footer_tagline' ) ) : ?>
 							<p class="text-xs text-white/45 mt-0.5"><?php echo esc_html( zw_opt( 'footer_tagline' ) ); ?></p>
 						<?php endif; ?>
