@@ -7,9 +7,10 @@ Tema WordPress di [ZonaWrestling.net](https://zonawrestling.net/). Tema classico
 1. Comprimi questa cartella in uno zip (senza `node_modules`) e caricala da **Aspetto → Temi → Aggiungi → Carica tema**, oppure copiala in `wp-content/themes/zonawrestling`.
 2. Prova prima su una copia del sito (staging). Quando attivi il tema, Newspaper si disattiva: i contenuti non vengono toccati.
 3. **Aspetto → Personalizza → Zona Wrestling**: controlla gli slug delle categorie usate dalle sezioni e i link social/Google (i valori predefiniti sono quelli attuali del sito).
-4. **Aspetto → Menu**: assegna un menu a «Menu principale (header)» e, se vuoi, a «Menu footer». Senza menu, l'header mostra le sezioni principali.
-5. **Aspetto → Widget**: WordPress può spostare da solo i vecchi widget di Newspaper nelle due aree del tema («Sidebar articolo» e «Sidebar home»). Lascia solo quelli che servono (per esempio i banner).
-6. **Articoli → Categorie**: nelle categorie mostrate come stories (WWE, AEW…) puoi caricare il logo che compare nel cerchio.
+4. **Aspetto → Personalizza → Identità del sito → Logo**: carica il logo (versione per sfondo scuro, come l'attuale bianco e rosso, possibilmente senza margini vuoti). Compare in header e footer; senza logo resta la scritta «ZONAWRESTLING.NET».
+5. **Aspetto → Menu**: assegna un menu a «Menu principale (header)» e, se vuoi, a «Menu footer». Senza menu, l'header mostra le sezioni principali.
+6. **Aspetto → Widget**: WordPress può spostare da solo i vecchi widget di Newspaper nelle due aree del tema («Sidebar articolo» e «Sidebar home»). Lascia solo quelli che servono (per esempio i banner).
+7. **Articoli → Categorie**: nelle categorie mostrate come stories (WWE, AEW…) puoi caricare il logo che compare nel cerchio.
 
 ## Cosa resta compatibile
 
