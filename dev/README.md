@@ -20,6 +20,7 @@ Strumenti per provare il tema su **https://test.giuseppe.rocks/zonawrestling/** 
 python3 dev/import-posts.py   # copia articoli recenti da zonawrestling.net (salta quelli già presenti)
 python3 dev/import-meta.py    # copia sottotitoli e valutazioni (td_post_theme_settings) dalle pagine pubbliche
 python3 dev/import-events.py  # copia gli eventi pubblici e gli articoli con i tag collegati
+python3 dev/import-live.py    # copia gli aggiornamenti delle dirette (plugin WP Wrestling Live Pro): non stanno nel testo
 ```
 
 Dopo aver modificato classi Tailwind nei template: `npm run build` prima del deploy.
