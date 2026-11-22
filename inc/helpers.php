@@ -309,7 +309,8 @@ function zw_social_links() {
 
 /** Cinque stelline (piene, mezze, vuote) per un voto da 0 a 5. */
 function zw_stars( $rating, $class = 'w-4 h-4' ) {
-	$rating = max( 0, min( 5, (float) $rating ) );
+	// Arrotondato alla mezza stella più vicina, come Newspaper (7,7/10 = 4 stelle).
+	$rating = round( max( 0, min( 5, (float) $rating ) ) * 2 ) / 2;
 	$path   = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
 	$full   = (int) floor( $rating );
 	$half   = ( $rating - $full ) >= 0.5 ? 1 : 0;
