@@ -22,7 +22,12 @@ if ( ! $zw_stories ) {
 						<?php if ( $zw_story['logo'] ) : ?>
 							<img src="<?php echo esc_url( $zw_story['logo'] ); ?>" alt="<?php echo esc_attr( $zw_story['alt'] ); ?>" width="64" height="64" class="w-full h-full <?php echo $zw_cover ? 'object-cover' : 'object-contain'; ?>" loading="eager" decoding="async" />
 						<?php else : ?>
-							<span class="font-sofiaCond font-black text-[15px] sm:text-[17px] text-white tracking-wide leading-none"><?php echo esc_html( $zw_story['short'] ); ?></span>
+							<?php
+							// Testo al posto del logo: più è lungo, più è piccolo, così entra nel cerchio.
+							$zw_len  = mb_strlen( $zw_story['short'] );
+							$zw_size = $zw_len <= 4 ? 'text-[15px] sm:text-[17px] tracking-wide' : ( $zw_len <= 6 ? 'text-[11px] sm:text-[13px]' : 'text-[10px] sm:text-[11.5px]' );
+							?>
+							<span class="font-sofiaCond font-black <?php echo esc_attr( $zw_size ); ?> text-white leading-none"><?php echo esc_html( $zw_story['short'] ); ?></span>
 						<?php endif; ?>
 					</span>
 				</span>

@@ -276,6 +276,10 @@ function zw_icon( $name, $class = 'w-4 h-4' ) {
 		'share'     => array( $stroke, '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>' ),
 		'link'      => array( $stroke, '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>' ),
 		'mic'       => array( $stroke, '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>' ),
+		'pin'       => array( $stroke, '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>' ),
+		'globe'     => array( $stroke, '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>' ),
+		'news'      => array( $stroke, '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 8h10M7 12h10M7 16h6"/>' ),
+		'eye'       => array( $stroke, '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>' ),
 		'play'      => array( 'fill="currentColor"', '<path d="M8 5v14l11-7z"/>' ),
 		'pause'     => array( 'fill="currentColor"', '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>' ),
 		'video'     => array( 'fill="currentColor"', '<path d="M7.2 4.3A1.5 1.5 0 0 0 5 5.6v12.8a1.5 1.5 0 0 0 2.2 1.3l11.6-6.4a1.5 1.5 0 0 0 0-2.6z"/>' ),
@@ -309,7 +313,8 @@ function zw_social_links() {
 
 /** Cinque stelline (piene, mezze, vuote) per un voto da 0 a 5. */
 function zw_stars( $rating, $class = 'w-4 h-4' ) {
-	$rating = max( 0, min( 5, (float) $rating ) );
+	// Arrotondato alla mezza stella più vicina, come Newspaper (7,7/10 = 4 stelle).
+	$rating = round( max( 0, min( 5, (float) $rating ) ) * 2 ) / 2;
 	$path   = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
 	$full   = (int) floor( $rating );
 	$half   = ( $rating - $full ) >= 0.5 ? 1 : 0;
@@ -377,4 +382,26 @@ function zw_parse_result_title( $title ) {
 		return array( 'show' => trim( substr( $title, 0, $m[0][1] ) ), 'date' => str_replace( array( '/', '-' ), '.', $m[1][0] ) );
 	}
 	return array( 'show' => $title, 'date' => '' );
+}
+
+/**
+ * Logo del sito: quello caricato in Personalizza → Identità del sito → Logo
+ * (deve essere adatto a uno sfondo scuro, come quello attuale bianco e rosso).
+ * Senza logo caricato resta la scritta "ZONAWRESTLING.NET".
+ *
+ * @param string $class Classi dell'immagine (altezza).
+ */
+function zw_logo( $class = 'h-9 sm:h-10 w-auto' ) {
+	$logo_id = (int) get_theme_mod( 'custom_logo' );
+	if ( $logo_id && wp_attachment_is_image( $logo_id ) ) {
+		return wp_get_attachment_image( $logo_id, 'medium_large', false, array(
+			'class'    => $class,
+			'loading'  => 'eager',
+			'decoding' => 'async',
+			'alt'      => get_bloginfo( 'name' ),
+			'sizes'    => '240px',
+		) );
+	}
+	return '<span class="w-10 h-10 rounded-2xl bg-zw-red flex items-center justify-center font-sofia font-black text-xl text-white nf-red-glow shrink-0">ZW</span>'
+		. '<span class="font-sofia font-black text-xl text-white tracking-tight">ZONA<span class="text-zw-red">WRESTLING</span><span class="text-white/45 text-sm">.NET</span></span>';
 }

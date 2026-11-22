@@ -5,7 +5,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'ZW_VERSION', '1.0.0' );
+define( 'ZW_VERSION', '1.1.0' );
 define( 'ZW_DIR', get_template_directory() );
 define( 'ZW_URI', get_template_directory_uri() );
 
@@ -19,3 +19,5 @@ require ZW_DIR . '/inc/views.php';       // Contatore "Le più lette di oggi".
 require ZW_DIR . '/inc/feed.php';        // Feed notizie della home (filtri e "carica altre").
 require ZW_DIR . '/inc/post-meta.php';   // Campi dell'articolo e dell'autore.
 require ZW_DIR . '/inc/content.php';     // Filtri sul testo dell'articolo, breadcrumb, podcast.
+require ZW_DIR . '/inc/video.php';       // Pagina dei video: player grande, dati del video, correlati.
+require ZW_DIR . '/inc/seo.php';         // Meta description e anteprime social (se manca un plugin SEO).

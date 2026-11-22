@@ -143,7 +143,7 @@ function zw_stories_data() {
 			'slug'   => $term->slug,
 			'label'  => html_entity_decode( $entry['label'], ENT_QUOTES, 'UTF-8' ),
 			'alt'    => html_entity_decode( $term->name, ENT_QUOTES, 'UTF-8' ),
-			'short'  => mb_strtoupper( mb_substr( html_entity_decode( $entry['label'], ENT_QUOTES, 'UTF-8' ), 0, 5 ) ),
+			'short'  => mb_strtoupper( mb_substr( html_entity_decode( $entry['label'], ENT_QUOTES, 'UTF-8' ), 0, 7 ) ),
 			'logo'   => $logo,
 			'fit'    => $fit,
 			'url'    => get_category_link( $term ),

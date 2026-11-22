@@ -13,7 +13,7 @@ $zw_social = zw_social_links();
 
 		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-3 shrink-0" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — Home">
 			<?php if ( has_custom_logo() ) : ?>
-				<?php echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'medium', false, array( 'class' => 'h-10 w-auto', 'loading' => 'eager', 'alt' => get_bloginfo( 'name' ) ) ); ?>
+				<?php echo zw_logo( 'h-7 sm:h-10 w-auto max-w-[180px] sm:max-w-[240px] object-contain' ); // phpcs:ignore ?>
 			<?php else : ?>
 				<span class="w-10 h-10 rounded-2xl bg-zw-red flex items-center justify-center font-sofia font-black text-xl text-white nf-red-glow">ZW</span>
 				<span class="font-sofia font-black text-xl text-white tracking-tight hidden sm:inline">ZONA<span class="text-zw-red">WRESTLING</span><span class="text-white/45 text-sm">.NET</span></span>

@@ -7,17 +7,18 @@ Tema WordPress di [ZonaWrestling.net](https://zonawrestling.net/). Tema classico
 1. Comprimi questa cartella in uno zip (senza `node_modules`) e caricala da **Aspetto → Temi → Aggiungi → Carica tema**, oppure copiala in `wp-content/themes/zonawrestling`.
 2. Prova prima su una copia del sito (staging). Quando attivi il tema, Newspaper si disattiva: i contenuti non vengono toccati.
 3. **Aspetto → Personalizza → Zona Wrestling**: controlla gli slug delle categorie usate dalle sezioni e i link social/Google (i valori predefiniti sono quelli attuali del sito).
-4. **Aspetto → Menu**: assegna un menu a «Menu principale (header)» e, se vuoi, a «Menu footer». Senza menu, l'header mostra le sezioni principali.
-5. **Aspetto → Widget**: WordPress può spostare da solo i vecchi widget di Newspaper nelle due aree del tema («Sidebar articolo» e «Sidebar home»). Lascia solo quelli che servono (per esempio i banner).
-6. **Aspetto → Stories in home**: crea un blocco per ogni cerchio delle stories (categoria, nome, immagine, eventuale periodo di visibilità) e mettili nell'ordine voluto. L'immagine può essere un logo PNG trasparente (resta intero) o una foto piena (ritagliata nel cerchio); il testo alternativo è sempre il nome della categoria. Gli stessi blocchi diventano i filtri di "Ultime notizie" e i link del footer. Finché non crei blocchi, si usano gli slug indicati in Personalizza e il logo caricato in **Articoli → Categorie**.
+4. **Aspetto → Personalizza → Identità del sito → Logo**: carica il logo (versione per sfondo scuro, come l'attuale bianco e rosso, possibilmente senza margini vuoti). Compare in header e footer; senza logo resta la scritta «ZONAWRESTLING.NET».
+5. **Aspetto → Menu**: assegna un menu a «Menu principale (header)» e, se vuoi, a «Menu footer». Senza menu, l'header mostra le sezioni principali.
+6. **Aspetto → Widget**: WordPress può spostare da solo i vecchi widget di Newspaper nelle due aree del tema («Sidebar articolo» e «Sidebar home»). Lascia solo quelli che servono (per esempio i banner).
+7. **Aspetto → Stories in home**: crea un blocco per ogni cerchio delle stories (categoria, nome, immagine, eventuale periodo di visibilità) e mettili nell'ordine voluto. L'immagine può essere un logo PNG trasparente (resta intero) o una foto piena (ritagliata nel cerchio); il testo alternativo è sempre il nome della categoria. Gli stessi blocchi diventano i filtri di "Ultime notizie" e i link del footer. Finché non crei blocchi, si usano gli slug indicati in Personalizza e il logo caricato in **Articoli → Categorie**.
 
 ## Cosa resta compatibile
 
 | Funzione | Come |
 | --- | --- |
-| Valutazioni delle analisi | Lette e scritte negli stessi campi di tagDiv Newspaper: `td_post_theme_settings` (`has_review`, `p_review_stars` / `p_review_percents` / `p_review_points`, `review`) e `td_review_key`. Nessuna migrazione. |
-| Sottotitolo degli articoli | Campo `td_subtitle` di Newspaper. |
-| Eventi | Plugin ZW Events Calendar: tipo `zw_event`, tassonomia `zw_federation`, campi `_zw_event_date`, `_zw_event_venue`, `_zw_event_city`, `_zw_event_related_tags`. |
+| Valutazioni delle analisi | Lette e scritte negli stessi campi di tagDiv Newspaper: `td_post_theme_settings` (`has_review`, `p_review_stars` / `p_review_percents` / `p_review_points`, `review` per le considerazioni finali, il «Sommario» di Newspaper) e `td_review_key`. Nessuna migrazione. |
+| Sottotitolo degli articoli | Campo `td_subtitle` di Newspaper. Se è vuoto non compare nulla (nessun ripiego sul riassunto). |
+| Eventi | Plugin ZW Events Calendar: tipo `zw_event`, tassonomia `zw_federation`, campi `_zw_event_date`, `_zw_event_venue`, `_zw_event_city`, `_zw_event_related_tags`. Nella pagina evento il tema impagina da sé scheda e notizie (i riquadri del plugin vengono tolti) e mette la guida all'evento prima dell'elenco delle notizie. |
 | Stelline dei singoli match | Plugin Universal Star Rating (shortcode nel testo): resta attivo com'è. |
 | Commenti | Plugin Disqus: il tema chiama il normale modulo commenti, che Disqus sostituisce. |
 | Profili social degli autori | Stessi campi del profilo utente usati da Newspaper. |

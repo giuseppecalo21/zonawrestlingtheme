@@ -7,11 +7,11 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * @param array $args cat (ID), live (bool), page, per_page, exclude (ID[]).
+ * @param array $args cat (ID), tags (slug[]), live (bool), page, per_page, exclude (ID[]).
  * @return array [ html, has_more, count ]
  */
 function zw_feed( $args = array() ) {
-	$args = wp_parse_args( $args, array( 'cat' => 0, 'live' => false, 'page' => 1, 'per_page' => 0, 'exclude' => array() ) );
+	$args = wp_parse_args( $args, array( 'cat' => 0, 'tags' => array(), 'live' => false, 'page' => 1, 'per_page' => 0, 'exclude' => array() ) );
 	$per  = $args['per_page'] ? (int) $args['per_page'] : max( 1, (int) zw_opt( 'feed_per_page' ) );
 
 	$query_args = array(
@@ -24,6 +24,9 @@ function zw_feed( $args = array() ) {
 	);
 	if ( $args['cat'] ) {
 		$query_args['cat'] = (int) $args['cat'];
+	}
+	if ( $args['tags'] ) {
+		$query_args['tag_slug__in'] = array_map( 'sanitize_title', (array) $args['tags'] );
 	}
 	if ( $args['live'] ) {
 		$query_args['zw_title_prefix'] = (string) zw_opt( 'live_prefix' );
@@ -62,15 +65,22 @@ add_action( 'rest_api_init', function () {
 			'cat'  => array( 'sanitize_callback' => 'absint', 'default' => 0 ),
 			'page' => array( 'sanitize_callback' => 'absint', 'default' => 1 ),
 			'live' => array( 'sanitize_callback' => 'absint', 'default' => 0 ),
+			// Notizie di un evento: ID dell'evento (i tag si leggono dai suoi campi).
+			'event' => array( 'sanitize_callback' => 'absint', 'default' => 0 ),
 		),
 		'callback'            => function ( $request ) {
 			$cat  = (int) $request['cat'];
 			$page = min( 50, max( 1, (int) $request['page'] ) );
-			$live = (bool) $request['live'];
-			$key  = 'zw_feed_' . md5( get_option( 'zw_frag_v', '1' ) . "|$cat|$page|" . (int) $live );
+			$live  = (bool) $request['live'];
+			$event = (int) $request['event'];
+			$tags  = ( $event && function_exists( 'zw_event_tag_slugs' ) ) ? zw_event_tag_slugs( $event ) : array();
+			if ( $event && ! $tags ) {
+				return new WP_REST_Response( array( 'html' => '', 'has_more' => false, 'count' => 0 ) );
+			}
+			$key  = 'zw_feed_' . md5( get_option( 'zw_frag_v', '1' ) . "|$cat|$page|" . (int) $live . "|$event" );
 			$data = get_transient( $key );
 			if ( ! is_array( $data ) ) {
-				$data = zw_feed( array( 'cat' => $cat, 'page' => $page, 'live' => $live ) );
+				$data = zw_feed( array( 'cat' => $cat, 'tags' => $tags, 'page' => $page, 'live' => $live, 'per_page' => $event ? 12 : 0 ) );
 				set_transient( $key, $data, 5 * MINUTE_IN_SECONDS );
 			}
 			$response = new WP_REST_Response( $data );
