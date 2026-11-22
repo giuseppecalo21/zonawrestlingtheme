@@ -93,6 +93,95 @@
 	} );
 
 	/* -----------------------------------------------------------------------
+	 * Countdown grande degli eventi: al secondo con l'orario di inizio,
+	 * in giorni con la sola data. Poi "In corso" (5 ore) ed "Evento concluso".
+	 * --------------------------------------------------------------------- */
+	( function () {
+		var clocks = $$( '[data-zw-clock]' );
+		var boxes = $$( '[data-zw-daysbox]' );
+		if ( ! clocks.length && ! boxes.length ) { return; }
+		function pad( n ) { return n < 10 ? '0' + n : String( n ); }
+		function show( root, which ) {
+			[ 'boxes', 'live', 'past' ].forEach( function ( name ) {
+				var el = $( '[data-clock-' + name + ']', root );
+				if ( el ) { el.hidden = name !== which; }
+			} );
+		}
+		function tick() {
+			var now = Date.now();
+			clocks.forEach( function ( root ) {
+				var start = Date.parse( root.getAttribute( 'data-zw-clock' ) );
+				if ( isNaN( start ) ) { return; }
+				var diff = Math.floor( ( start - now ) / 1000 );
+				if ( diff <= 0 ) { show( root, diff > -5 * 3600 ? 'live' : 'past' ); return; }
+				show( root, 'boxes' );
+				var parts = { d: Math.floor( diff / 86400 ), h: Math.floor( diff % 86400 / 3600 ), m: Math.floor( diff % 3600 / 60 ), s: diff % 60 };
+				Object.keys( parts ).forEach( function ( u ) {
+					var el = $( '[data-u="' + u + '"]', root );
+					if ( el ) { el.textContent = u === 'd' ? String( parts[ u ] ) : pad( parts[ u ] ); }
+				} );
+			} );
+		}
+		boxes.forEach( function ( root ) {
+			var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec( root.getAttribute( 'data-zw-daysbox' ) || '' );
+			if ( ! m ) { return; }
+			var today = new Date();
+			var days = Math.round( ( new Date( +m[1], +m[2] - 1, +m[3] ) - new Date( today.getFullYear(), today.getMonth(), today.getDate() ) ) / 86400000 );
+			if ( days < 0 ) { show( root, 'past' ); return; }
+			show( root, 'boxes' );
+			var num = $( '[data-num]', root );
+			var lbl = $( '[data-lbl]', root );
+			if ( num ) { num.textContent = days > 1 ? String( days ) : ( days === 1 ? 'Domani' : 'Oggi' ); }
+			if ( lbl ) { lbl.hidden = days <= 1; }
+		} );
+		if ( clocks.length ) { tick(); window.setInterval( tick, 1000 ); }
+	} )();
+
+	/* -----------------------------------------------------------------------
+	 * Player dei video: copertina leggera, il player vero si carica al clic
+	 * --------------------------------------------------------------------- */
+	$$( '[data-zw-player]' ).forEach( function ( box ) {
+		var button = $( 'button', box );
+		if ( ! button ) { return; }
+		button.addEventListener( 'click', function () {
+			var frame = document.createElement( 'iframe' );
+			frame.src = box.getAttribute( 'data-zw-player' );
+			frame.title = box.getAttribute( 'data-title' ) || 'Video';
+			frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+			frame.setAttribute( 'allowfullscreen', '' );
+			frame.className = 'absolute inset-0 w-full h-full';
+			box.innerHTML = '';
+			box.appendChild( frame );
+		} );
+	} );
+
+	/* -----------------------------------------------------------------------
+	 * Pagina evento: "Carica altre notizie"
+	 * --------------------------------------------------------------------- */
+	( function () {
+		var more = $( '[data-zw-event-more]' );
+		var list = $( '#eventFeedList' );
+		if ( ! more || ! list || ! window.ZW || ! ZW.rest || ! window.fetch ) { return; }
+		var page = 1;
+		var busy = false;
+		more.addEventListener( 'click', function ( event ) {
+			event.preventDefault();
+			if ( busy ) { return; }
+			busy = true;
+			page += 1;
+			list.classList.add( 'is-loading' );
+			fetch( ZW.rest + 'zw/v1/feed?event=' + more.getAttribute( 'data-zw-event-more' ) + '&page=' + page, { credentials: 'omit' } )
+				.then( function ( response ) { if ( ! response.ok ) { throw new Error( 'HTTP ' + response.status ); } return response.json(); } )
+				.then( function ( data ) {
+					list.insertAdjacentHTML( 'beforeend', data.html );
+					more.hidden = ! data.has_more;
+				} )
+				.catch( function () { window.location.href = more.href; } )
+				.then( function () { busy = false; list.classList.remove( 'is-loading' ); } );
+		} );
+	} )();
+
+	/* -----------------------------------------------------------------------
 	 * Primo piano: slider
 	 * --------------------------------------------------------------------- */
 	( function () {

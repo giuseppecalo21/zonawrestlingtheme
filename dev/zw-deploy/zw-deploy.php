@@ -2,12 +2,28 @@
 /**
  * Plugin Name: ZW Deploy (solo sito di prova)
  * Description: Aggiorna tema e plugin caricando uno zip via REST API e scrive i campi personalizzati degli articoli (autenticazione con password per le applicazioni). Da usare SOLO sul sito di prova, mai in produzione.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  */
 
 defined( 'ABSPATH' ) || exit;
+
+/*
+ * Rete di sicurezza: nelle richieste a /zw-deploy/v1/ il tema non viene caricato.
+ * Così, se un aggiornamento del tema provoca un errore fatale, si può sempre
+ * caricare la versione corretta. Le opzioni salvate non cambiano.
+ */
+$zw_deploy_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : ''; // phpcs:ignore
+if ( false !== strpos( $zw_deploy_uri, '/zw-deploy/v1/' ) || false !== strpos( rawurldecode( $zw_deploy_uri ), 'rest_route=/zw-deploy/v1/' ) ) {
+	add_filter( 'template', 'zw_deploy_no_theme' );
+	add_filter( 'stylesheet', 'zw_deploy_no_theme' );
+}
+unset( $zw_deploy_uri );
+
+function zw_deploy_no_theme() {
+	return 'zw-deploy-nessun-tema';
+}
 
 add_action( 'rest_api_init', function () {
 	register_rest_route( 'zw-deploy/v1', '/theme', array(
@@ -47,9 +63,9 @@ function zw_deploy_status() {
 	return array(
 		'installed' => $theme->exists(),
 		'version'   => $theme->exists() ? $theme->get( 'Version' ) : null,
-		'active'    => get_stylesheet() === 'zonawrestling',
+		'active'    => get_option( 'stylesheet' ) === 'zonawrestling',
 		'deployed'  => get_option( 'zw_deploy_last', null ),
-		'plugin'    => '1.1.0',
+		'plugin'    => '1.2.0',
 		'wp'        => get_bloginfo( 'version' ),
 		'php'       => PHP_VERSION,
 	);
@@ -105,7 +121,9 @@ function zw_deploy_theme( WP_REST_Request $request ) {
 	}
 
 	wp_clean_themes_cache();
-	if ( $request->get_param( 'activate' ) && get_stylesheet() !== 'zonawrestling' ) {
+	if ( $request->get_param( 'activate' ) && get_option( 'stylesheet' ) !== 'zonawrestling' ) {
+		remove_filter( 'template', 'zw_deploy_no_theme' );
+		remove_filter( 'stylesheet', 'zw_deploy_no_theme' );
 		switch_theme( 'zonawrestling' );
 	}
 	// Svuota le cache dei blocchi del tema (transient zw_*).

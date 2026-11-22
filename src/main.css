@@ -305,3 +305,8 @@ a.nf-shadow-light:hover, article.nf-shadow-light:hover { box-shadow: 0 22px 46px
 .zw-prose .not-prose h2 { color: inherit; margin: 0; font-size: 1.25rem; }
 .zw-prose .zw-in-breve h2 { color: #0f1117; }
 .zw-prose .not-prose p { margin: 0; }
+
+/* Descrizione breve dei video (su sfondo scuro). */
+.zw-video-desc p { margin: 0 0 0.6em; }
+.zw-video-desc p:last-child { margin-bottom: 0; }
+.zw-video-desc a { color: #ff3b4e; text-decoration: underline; text-underline-offset: 2px; }
