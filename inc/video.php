@@ -23,7 +23,8 @@ function zw_is_video_post( $post = null ) {
 
 // Gli articoli video usano single-video.php.
 add_filter( 'single_template', function ( $template ) {
-	if ( is_singular( 'post' ) && zw_is_video_post( get_queried_object() ) ) {
+	// Solo se c'è un video da mettere nel player (non per esempio un post di X).
+	if ( is_singular( 'post' ) && zw_is_video_post( get_queried_object() ) && zw_video_from_raw( get_queried_object()->post_content ) ) {
 		$video = locate_template( 'single-video.php' );
 		if ( $video ) {
 			return $video;
@@ -202,22 +203,8 @@ add_action( 'zw_fetch_video_info', function ( $post_id ) {
 			$info['author']     = isset( $json['author_name'] ) ? sanitize_text_field( $json['author_name'] ) : '';
 			$info['author_url'] = isset( $json['author_url'] ) ? esc_url_raw( $json['author_url'] ) : '';
 		}
-		// Durata, visualizzazioni e data: dalla pagina pubblica del video.
-		$res  = wp_remote_get( $watch . '&hl=it&gl=IT', array(
-			'timeout'    => 10,
-			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-			'headers'    => array( 'Accept-Language' => 'it-IT,it;q=0.9', 'Cookie' => 'CONSENT=YES+1; SOCS=CAI' ),
-		) );
-		$page = wp_remote_retrieve_body( $res );
-		if ( preg_match( '/"lengthSeconds":"(\d+)"/', $page, $m ) ) {
-			$info['duration'] = (int) $m[1];
-		}
-		if ( preg_match( '/"viewCount":"(\d+)"/', $page, $m ) ) {
-			$info['views'] = (int) $m[1];
-		}
-		if ( preg_match( '/"(?:uploadDate|publishDate)":"(\d{4}-\d{2}-\d{2})/', $page, $m ) ) {
-			$info['upload'] = $m[1];
-		}
+		$details = zw_youtube_details( $video['id'] );
+		$info    = array_merge( $info, $details );
 	} elseif ( 'vimeo' === $video['provider'] ) {
 		$res  = wp_remote_get( 'https://vimeo.com/api/oembed.json?url=' . rawurlencode( 'https://vimeo.com/' . $video['id'] ), array( 'timeout' => 8 ) );
 		$json = json_decode( wp_remote_retrieve_body( $res ), true );
@@ -239,6 +226,82 @@ add_action( 'save_post_post', function ( $post_id, $post ) {
 	delete_post_meta( $post_id, ZW_VIDEO_META );
 	wp_schedule_single_event( time() + 5, 'zw_fetch_video_info', array( (int) $post_id ) );
 }, 20, 2 );
+
+/**
+ * Durata, visualizzazioni e data di un video YouTube.
+ * 1) API ufficiale (se in Personalizza c'è la chiave); 2) interfaccia del player
+ * di YouTube con più client; 3) pagina pubblica. 2 e 3 non sono ufficiali: se
+ * YouTube le cambia o blocca il server, questi dati semplicemente non compaiono.
+ */
+function zw_youtube_details( $id ) {
+	$out = array();
+	$key = trim( (string) zw_opt( 'youtube_api_key' ) );
+	if ( $key ) {
+		$res  = wp_remote_get( add_query_arg( array( 'part' => 'contentDetails,statistics,snippet', 'id' => $id, 'key' => $key ), 'https://www.googleapis.com/youtube/v3/videos' ), array( 'timeout' => 8 ) );
+		$json = json_decode( wp_remote_retrieve_body( $res ), true );
+		if ( ! empty( $json['items'][0] ) ) {
+			$item = $json['items'][0];
+			try {
+				$interval        = new DateInterval( (string) $item['contentDetails']['duration'] );
+				$out['duration'] = $interval->d * DAY_IN_SECONDS + $interval->h * 3600 + $interval->i * 60 + $interval->s;
+			} catch ( Exception $e ) {
+				unset( $e );
+			}
+			$out['views']  = isset( $item['statistics']['viewCount'] ) ? (int) $item['statistics']['viewCount'] : 0;
+			$out['upload'] = isset( $item['snippet']['publishedAt'] ) ? substr( $item['snippet']['publishedAt'], 0, 10 ) : '';
+			$out['via']    = 'api';
+			return $out;
+		}
+		$out['via_error'] = 'API: HTTP ' . wp_remote_retrieve_response_code( $res );
+	}
+
+	$clients = array(
+		array( 'clientName' => 'WEB_EMBEDDED_PLAYER', 'clientVersion' => '1.20250101.01.00' ),
+		array( 'clientName' => 'ANDROID', 'clientVersion' => '19.44.38', 'androidSdkVersion' => 30 ),
+		array( 'clientName' => 'WEB', 'clientVersion' => '2.20250101.00.00' ),
+	);
+	foreach ( $clients as $client ) {
+		$body = array( 'videoId' => $id, 'context' => array( 'client' => array_merge( $client, array( 'hl' => 'it', 'gl' => 'IT' ) ) ) );
+		if ( 'WEB_EMBEDDED_PLAYER' === $client['clientName'] ) {
+			$body['context']['thirdParty'] = array( 'embedUrl' => home_url( '/' ) );
+		}
+		$res  = wp_remote_post( 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false', array(
+			'timeout' => 8,
+			'headers' => array( 'Content-Type' => 'application/json' ),
+			'body'    => wp_json_encode( $body ),
+		) );
+		$json = json_decode( wp_remote_retrieve_body( $res ), true );
+		if ( ! empty( $json['videoDetails']['lengthSeconds'] ) ) {
+			$out['duration'] = (int) $json['videoDetails']['lengthSeconds'];
+			$out['views']    = isset( $json['videoDetails']['viewCount'] ) ? (int) $json['videoDetails']['viewCount'] : 0;
+			if ( ! empty( $json['microformat']['playerMicroformatRenderer']['publishDate'] ) ) {
+				$out['upload'] = substr( (string) $json['microformat']['playerMicroformatRenderer']['publishDate'], 0, 10 );
+			}
+			$out['via'] = 'player ' . $client['clientName'];
+			return $out;
+		}
+		$status                                       = isset( $json['playabilityStatus']['status'] ) ? $json['playabilityStatus']['status'] : 'HTTP ' . wp_remote_retrieve_response_code( $res );
+		$out[ 'via_' . strtolower( $client['clientName'] ) ] = $status;
+	}
+
+	$res  = wp_remote_get( 'https://www.youtube.com/watch?v=' . rawurlencode( $id ) . '&hl=it&gl=IT', array(
+		'timeout'    => 10,
+		'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+		'headers'    => array( 'Accept-Language' => 'it-IT,it;q=0.9', 'Cookie' => 'CONSENT=YES+1; SOCS=CAI' ),
+	) );
+	$page = wp_remote_retrieve_body( $res );
+	if ( preg_match( '/"lengthSeconds":"(\d+)"/', $page, $m ) ) {
+		$out['duration'] = (int) $m[1];
+		$out['via']      = 'pagina';
+	}
+	if ( preg_match( '/"viewCount":"(\d+)"/', $page, $m ) ) {
+		$out['views'] = (int) $m[1];
+	}
+	if ( preg_match( '/"(?:uploadDate|publishDate)":"(\d{4}-\d{2}-\d{2})/', $page, $m ) ) {
+		$out['upload'] = $m[1];
+	}
+	return $out;
+}
 
 /** 75 → "1:15", 3725 → "1:02:05". */
 function zw_video_duration( $seconds ) {

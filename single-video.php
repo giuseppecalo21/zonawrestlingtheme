@@ -27,6 +27,14 @@ $zw_service  = $zw_video ? zw_video_provider_name( $zw_video['provider'] ) : '';
 $zw_text     = trim( wp_strip_all_tags( $zw_found['html'] ) );
 $zw_label    = $zw_labels['fed'] ? $zw_labels['fed'] : $zw_labels['label'];
 
+// Se il sottotitolo ripete il testo (capita nei video brevi), non lo mostriamo due volte.
+$zw_norm = function ( $text ) {
+	return trim( preg_replace( '/\s+/u', ' ', mb_strtolower( html_entity_decode( wp_strip_all_tags( $text ), ENT_QUOTES, 'UTF-8' ) ) ) );
+};
+if ( $zw_subtitle && $zw_text && false !== mb_strpos( $zw_norm( $zw_text ), $zw_norm( $zw_subtitle ) ) ) {
+	$zw_subtitle = '';
+}
+
 /** Durata di un video correlato (se già nota). */
 $zw_rel_duration = function ( $post ) {
 	$info = get_post_meta( $post->ID, ZW_VIDEO_META, true );
@@ -89,7 +97,7 @@ zw_stage_open();
 
 				<div class="flex flex-wrap items-center justify-between gap-4 mt-4">
 					<p class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-white/65">
-						<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="flex items-center gap-1.5"><?php echo zw_icon( 'calendar', 'w-3.5 h-3.5 text-zw-redSoft' ); // phpcs:ignore ?><?php echo esc_html( get_the_date( 'j F Y' ) ); ?></time>
+						<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="flex items-center gap-1.5"><?php echo zw_icon( 'calendar', 'w-3.5 h-3.5 text-zw-redSoft' ); // phpcs:ignore ?><?php echo esc_html( mb_strtolower( get_the_date( 'j F Y' ) ) ); ?></time>
 						<?php if ( $zw_duration ) : ?>
 							<span class="flex items-center gap-1.5"><?php echo zw_icon( 'clock', 'w-3.5 h-3.5 text-zw-redSoft' ); // phpcs:ignore ?><?php echo esc_html( $zw_duration ); ?></span>
 						<?php endif; ?>

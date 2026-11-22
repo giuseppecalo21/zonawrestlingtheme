@@ -52,7 +52,7 @@ function zw_event( $event ) {
 		'day'      => $ts ? gmdate( 'd', $ts ) : '',
 		'month'    => $ts ? strtoupper( mb_substr( date_i18n( 'M', $ts, true ), 0, 3 ) ) : '',
 		'date_num' => $ts ? gmdate( 'd.m.Y', $ts ) : '',
-		'date_txt' => $ts ? date_i18n( 'j F Y', $ts, true ) : '',
+		'date_txt' => $ts ? mb_strtolower( date_i18n( 'j F Y', $ts, true ) ) : '', // In italiano i mesi vanno in minuscolo.
 		'venue'    => $venue,
 		'city'     => $city,
 		'place'    => implode( ' • ', array_filter( array( $venue, $city ) ) ),
@@ -77,7 +77,7 @@ function zw_event_start( $event_id ) {
 
 /** "domenica 29 novembre, ore 00:00" (ora italiana). */
 function zw_event_start_text( DateTimeImmutable $start ) {
-	return wp_date( 'l j F, \o\r\e H:i', $start->getTimestamp(), new DateTimeZone( 'Europe/Rome' ) );
+	return mb_strtolower( wp_date( 'l j F, \o\r\e H:i', $start->getTimestamp(), new DateTimeZone( 'Europe/Rome' ) ) );
 }
 
 /**

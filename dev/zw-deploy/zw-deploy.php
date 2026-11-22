@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ZW Deploy (solo sito di prova)
  * Description: Aggiorna tema e plugin caricando uno zip via REST API e scrive i campi personalizzati degli articoli (autenticazione con password per le applicazioni). Da usare SOLO sul sito di prova, mai in produzione.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  */
@@ -46,6 +46,15 @@ add_action( 'rest_api_init', function () {
 		'callback'            => 'zw_deploy_plugin',
 	) );
 	register_rest_route( 'zw-deploy/v1', '/meta', array(
+		'methods'             => 'GET',
+		'permission_callback' => function ( WP_REST_Request $request ) {
+			return current_user_can( 'edit_post', (int) $request->get_param( 'post' ) );
+		},
+		'callback'            => function ( WP_REST_Request $request ) {
+			return get_post_meta( (int) $request->get_param( 'post' ), sanitize_key( (string) $request->get_param( 'key' ) ), true );
+		},
+	) );
+	register_rest_route( 'zw-deploy/v1', '/meta', array(
 		'methods'             => 'POST',
 		'permission_callback' => function ( WP_REST_Request $request ) {
 			return current_user_can( 'edit_post', (int) $request->get_param( 'post' ) );
@@ -65,7 +74,7 @@ function zw_deploy_status() {
 		'version'   => $theme->exists() ? $theme->get( 'Version' ) : null,
 		'active'    => get_option( 'stylesheet' ) === 'zonawrestling',
 		'deployed'  => get_option( 'zw_deploy_last', null ),
-		'plugin'    => '1.2.0',
+		'plugin'    => '1.3.0',
 		'wp'        => get_bloginfo( 'version' ),
 		'php'       => PHP_VERSION,
 	);

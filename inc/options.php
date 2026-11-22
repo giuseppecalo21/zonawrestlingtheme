@@ -36,6 +36,7 @@ function zw_option_defaults() {
 		'google_pref_url'  => 'https://www.google.com/preferences/source?q=zonawrestling.net',
 		'footer_tagline'   => 'Il punto di riferimento italiano sul wrestling professionistico dal 2001.',
 		'views_enabled'    => 1,
+		'youtube_api_key'  => '',
 	);
 }
 
@@ -85,6 +86,13 @@ add_action( 'customize_register', function ( $wp_customize ) {
 				'google_news_url'  => 'Link "Seguici su Google News"',
 				'google_pref_url'  => 'Link "Aggiungi alle fonti preferite su Google"',
 				'footer_tagline'   => 'Frase nel footer',
+			),
+		),
+		'zw_sec_video'  => array(
+			'title'  => 'Video',
+			'desc'   => 'Facoltativa: con una chiave gratuita della YouTube Data API v3 (Google Cloud Console) le pagine video mostrano sempre durata e visualizzazioni. Senza chiave il tema ci prova lo stesso, ma YouTube a volte non risponde ai server.',
+			'fields' => array(
+				'youtube_api_key' => 'Chiave YouTube Data API v3',
 			),
 		),
 	);
