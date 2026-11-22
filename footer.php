@@ -23,13 +23,9 @@ $zw_items  = function_exists( 'zw_menu_items' ) ? zw_menu_items() : array();
 
 				<nav class="flex flex-wrap items-center gap-2" aria-label="Federazioni">
 					<?php
-					foreach ( zw_opt_list( 'stories_cats' ) as $zw_slug ) :
-						$zw_term = get_category_by_slug( $zw_slug );
-						if ( ! $zw_term ) {
-							continue;
-						}
+					foreach ( zw_story_entries() as $zw_entry ) :
 						?>
-						<a href="<?php echo esc_url( get_category_link( $zw_term ) ); ?>" class="px-3.5 py-1.5 rounded-full bg-white/[0.05] hover:bg-zw-red text-xs text-white transition-all"><?php echo esc_html( $zw_term->name ); ?></a>
+						<a href="<?php echo esc_url( get_category_link( $zw_entry['term'] ) ); ?>" class="px-3.5 py-1.5 rounded-full bg-white/[0.05] hover:bg-zw-red text-xs text-white transition-all"><?php echo esc_html( $zw_entry['label'] ); ?></a>
 					<?php endforeach; ?>
 				</nav>
 

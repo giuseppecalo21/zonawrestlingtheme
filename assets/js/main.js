@@ -185,7 +185,7 @@
 				return '<span class="story-seg flex-1 h-1 rounded-full bg-white/25 overflow-hidden ' + ( i < slide ? 'is-done' : i === slide ? 'is-active' : '' ) + '"><span class="story-seg-fill block h-full bg-white"></span></span>';
 			} ).join( '' );
 			el.segments.style.setProperty( '--story-ms', STORY_MS + 'ms' );
-			el.avatar.innerHTML = story.logo ? '<img src="' + encodeURI( story.logo ) + '" alt="" class="w-full h-full object-contain p-1" />' : escapeHtml( story.short );
+			el.avatar.innerHTML = story.logo ? '<img src="' + encodeURI( story.logo ) + '" alt="' + escapeHtml( story.alt || story.label ).replace( /"/g, '&quot;' ) + '" class="w-full h-full ' + ( 'cover' === story.fit ? 'object-cover' : 'object-contain p-1' ) + '" />' : escapeHtml( story.short );
 			el.title.textContent = story.label;
 			el.fedLink.href = story.url;
 			el.time.textContent = item.time;

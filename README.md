@@ -9,7 +9,7 @@ Tema WordPress di [ZonaWrestling.net](https://zonawrestling.net/). Tema classico
 3. **Aspetto → Personalizza → Zona Wrestling**: controlla gli slug delle categorie usate dalle sezioni e i link social/Google (i valori predefiniti sono quelli attuali del sito).
 4. **Aspetto → Menu**: assegna un menu a «Menu principale (header)» e, se vuoi, a «Menu footer». Senza menu, l'header mostra le sezioni principali.
 5. **Aspetto → Widget**: WordPress può spostare da solo i vecchi widget di Newspaper nelle due aree del tema («Sidebar articolo» e «Sidebar home»). Lascia solo quelli che servono (per esempio i banner).
-6. **Articoli → Categorie**: nelle categorie mostrate come stories (WWE, AEW…) puoi caricare il logo che compare nel cerchio.
+6. **Aspetto → Stories in home**: crea un blocco per ogni cerchio delle stories (categoria, nome, immagine, eventuale periodo di visibilità) e mettili nell'ordine voluto. L'immagine può essere un logo PNG trasparente (resta intero) o una foto piena (ritagliata nel cerchio); il testo alternativo è sempre il nome della categoria. Gli stessi blocchi diventano i filtri di "Ultime notizie" e i link del footer. Finché non crei blocchi, si usano gli slug indicati in Personalizza e il logo caricato in **Articoli → Categorie**.
 
 ## Cosa resta compatibile
 

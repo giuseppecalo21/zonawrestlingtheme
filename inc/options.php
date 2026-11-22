@@ -16,7 +16,7 @@ function zw_option_defaults() {
 		'cat_gallery'    => 'gallery',
 		'cat_video'      => 'videonews',
 		'cat_podcast'    => 'podcast',
-		// Categorie mostrate come stories e come filtri del feed (slug separati da virgola).
+		// Stories e filtri del feed se in Aspetto → Stories in home non c'è nessun blocco.
 		'stories_cats'   => 'wwe,aew,njpw,tna,stardom,cmll,aaa,italia',
 		// Categorie considerate "federazione" per l'etichetta sulle card.
 		'fed_cats'       => 'wwe,aew,njpw,tna,roh,stardom,cmll,aaa,mlw,nwa,gcw,noah,progress,revpro-news,italia,news-italia',
@@ -65,7 +65,7 @@ add_action( 'customize_register', function ( $wp_customize ) {
 				'cat_gallery'    => 'Gallery',
 				'cat_video'      => 'Video',
 				'cat_podcast'    => 'Podcast',
-				'stories_cats'   => 'Stories e filtri del feed (slug separati da virgola, nell\'ordine voluto)',
+				'stories_cats'   => 'Stories e filtri del feed (slug separati da virgola). Usato solo finché non crei dei blocchi in Aspetto → Stories in home',
 				'fed_cats'       => 'Categorie "federazione" per le etichette',
 				'hidden_cats'    => 'Categorie da non mostrare mai come etichetta',
 				'live_prefix'    => 'Prefisso del titolo che identifica una diretta',

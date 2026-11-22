@@ -7,13 +7,7 @@ defined( 'ABSPATH' ) || exit;
 
 zw_fragment( 'home_feed', 5 * MINUTE_IN_SECONDS, function () {
 	$feed  = zw_feed();
-	$chips = array();
-	foreach ( zw_opt_list( 'stories_cats' ) as $slug ) {
-		$term = get_category_by_slug( $slug );
-		if ( $term ) {
-			$chips[] = $term;
-		}
-	}
+	$chips = zw_story_entries();
 	$chip_idle   = 'bg-white hover:bg-zw-ink text-zw-ink hover:text-white nf-shadow-light';
 	$chip_active = 'bg-zw-red text-white nf-red-glow';
 	$news_url    = zw_cat( 'news' ) ? zw_cat_url( 'news' ) : ( get_option( 'page_for_posts' ) ? get_permalink( get_option( 'page_for_posts' ) ) : '' );
@@ -37,8 +31,8 @@ zw_fragment( 'home_feed', 5 * MINUTE_IN_SECONDS, function () {
 
 			<div class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-5 pb-10 -mt-4 -mb-9 px-6 -mx-6" id="feedChips" data-idle="<?php echo esc_attr( $chip_idle ); ?>" data-active="<?php echo esc_attr( $chip_active ); ?>">
 				<a href="<?php echo esc_url( home_url( '/' ) ); ?>#notizie" data-feed-cat="0" aria-current="true" class="px-4 py-2 rounded-full font-sofia font-bold text-xs tracking-wide shrink-0 transition-all flex items-center gap-1.5 <?php echo esc_attr( $chip_active ); ?>">Tutte</a>
-				<?php foreach ( $chips as $term ) : ?>
-					<a href="<?php echo esc_url( get_category_link( $term ) ); ?>" data-feed-cat="<?php echo (int) $term->term_id; ?>" class="px-4 py-2 rounded-full font-sofia font-bold text-xs tracking-wide shrink-0 transition-all flex items-center gap-1.5 <?php echo esc_attr( $chip_idle ); ?>"><?php echo esc_html( $term->name ); ?></a>
+				<?php foreach ( $chips as $chip ) : ?>
+					<a href="<?php echo esc_url( get_category_link( $chip['term'] ) ); ?>" data-feed-cat="<?php echo (int) $chip['term']->term_id; ?>" class="px-4 py-2 rounded-full font-sofia font-bold text-xs tracking-wide shrink-0 transition-all flex items-center gap-1.5 <?php echo esc_attr( $chip_idle ); ?>"><?php echo esc_html( $chip['label'] ); ?></a>
 				<?php endforeach; ?>
 				<a href="<?php echo esc_url( home_url( '/?s=' . rawurlencode( zw_opt( 'live_prefix' ) ) ) ); ?>" data-feed-cat="0" data-feed-live="1" class="px-4 py-2 rounded-full font-sofia font-bold text-xs tracking-wide shrink-0 transition-all flex items-center gap-1.5 <?php echo esc_attr( $chip_idle ); ?>"><span class="w-1.5 h-1.5 rounded-full bg-current animate-ping"></span>Dirette live</a>
 			</div>
