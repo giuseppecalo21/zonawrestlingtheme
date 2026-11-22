@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: ZW Deploy (solo sito di prova)
- * Description: Permette di aggiornare il tema Zona Wrestling caricando uno zip via REST API (autenticazione con password per le applicazioni). Da usare SOLO sul sito di prova, mai in produzione.
- * Version: 1.0.0
+ * Description: Aggiorna tema e plugin caricando uno zip via REST API e scrive i campi personalizzati degli articoli (autenticazione con password per le applicazioni). Da usare SOLO sul sito di prova, mai in produzione.
+ * Version: 1.1.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  */
@@ -13,18 +13,32 @@ add_action( 'rest_api_init', function () {
 	register_rest_route( 'zw-deploy/v1', '/theme', array(
 		array(
 			'methods'             => 'GET',
-			'permission_callback' => 'zw_deploy_can',
+			'permission_callback' => 'zw_deploy_can_theme',
 			'callback'            => 'zw_deploy_status',
 		),
 		array(
 			'methods'             => 'POST',
-			'permission_callback' => 'zw_deploy_can',
-			'callback'            => 'zw_deploy_upload',
+			'permission_callback' => 'zw_deploy_can_theme',
+			'callback'            => 'zw_deploy_theme',
 		),
+	) );
+	register_rest_route( 'zw-deploy/v1', '/plugin', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return current_user_can( 'install_plugins' ) && current_user_can( 'activate_plugins' );
+		},
+		'callback'            => 'zw_deploy_plugin',
+	) );
+	register_rest_route( 'zw-deploy/v1', '/meta', array(
+		'methods'             => 'POST',
+		'permission_callback' => function ( WP_REST_Request $request ) {
+			return current_user_can( 'edit_post', (int) $request->get_param( 'post' ) );
+		},
+		'callback'            => 'zw_deploy_meta',
 	) );
 } );
 
-function zw_deploy_can() {
+function zw_deploy_can_theme() {
 	return current_user_can( 'install_themes' ) && current_user_can( 'switch_themes' );
 }
 
@@ -35,27 +49,29 @@ function zw_deploy_status() {
 		'version'   => $theme->exists() ? $theme->get( 'Version' ) : null,
 		'active'    => get_stylesheet() === 'zonawrestling',
 		'deployed'  => get_option( 'zw_deploy_last', null ),
+		'plugin'    => '1.1.0',
 		'wp'        => get_bloginfo( 'version' ),
 		'php'       => PHP_VERSION,
 	);
 }
 
-function zw_deploy_upload( WP_REST_Request $request ) {
+/**
+ * Estrae lo zip del corpo della richiesta e sostituisce $dest con la cartella $folder dello zip.
+ */
+function zw_deploy_install_zip( WP_REST_Request $request, $folder, $dest, $marker ) {
 	require_once ABSPATH . 'wp-admin/includes/file.php';
 
 	$body = $request->get_body();
 	if ( strlen( $body ) < 100 || 'PK' !== substr( $body, 0, 2 ) ) {
 		return new WP_Error( 'zw_bad_zip', 'Il corpo della richiesta non è uno zip.', array( 'status' => 400 ) );
 	}
-
 	if ( ! WP_Filesystem( false, false, true ) ) {
 		return new WP_Error( 'zw_fs', 'Accesso diretto ai file non disponibile.', array( 'status' => 500 ) );
 	}
 	global $wp_filesystem;
 
-	$tmp_zip = wp_tempnam( 'zw-theme.zip' );
+	$tmp_zip = wp_tempnam( 'zw-deploy.zip' );
 	file_put_contents( $tmp_zip, $body );
-
 	$tmp_dir = trailingslashit( get_temp_dir() ) . 'zw-deploy-' . wp_generate_password( 8, false );
 	$unzip   = unzip_file( $tmp_zip, $tmp_dir );
 	@unlink( $tmp_zip );
@@ -64,30 +80,33 @@ function zw_deploy_upload( WP_REST_Request $request ) {
 		return $unzip;
 	}
 
-	// Lo zip contiene la cartella "zonawrestling/".
-	$src = trailingslashit( $tmp_dir ) . 'zonawrestling';
-	if ( ! $wp_filesystem->exists( $src . '/style.css' ) ) {
+	$src = trailingslashit( $tmp_dir ) . $folder;
+	if ( ! $wp_filesystem->exists( $src . '/' . $marker ) ) {
 		$wp_filesystem->delete( $tmp_dir, true );
-		return new WP_Error( 'zw_layout', 'Lo zip deve contenere la cartella zonawrestling/ con style.css.', array( 'status' => 400 ) );
+		return new WP_Error( 'zw_layout', "Lo zip deve contenere la cartella $folder/ con $marker.", array( 'status' => 400 ) );
 	}
 
-	$dest = trailingslashit( get_theme_root() ) . 'zonawrestling';
 	if ( $wp_filesystem->exists( $dest ) ) {
 		$wp_filesystem->delete( $dest, true );
 	}
 	$wp_filesystem->mkdir( $dest );
 	$copy = copy_dir( $src, $dest );
 	$wp_filesystem->delete( $tmp_dir, true );
-	if ( is_wp_error( $copy ) ) {
-		return $copy;
+	if ( function_exists( 'opcache_reset' ) ) {
+		@opcache_reset();
+	}
+	return is_wp_error( $copy ) ? $copy : true;
+}
+
+function zw_deploy_theme( WP_REST_Request $request ) {
+	$done = zw_deploy_install_zip( $request, 'zonawrestling', trailingslashit( get_theme_root() ) . 'zonawrestling', 'style.css' );
+	if ( is_wp_error( $done ) ) {
+		return $done;
 	}
 
 	wp_clean_themes_cache();
 	if ( $request->get_param( 'activate' ) && get_stylesheet() !== 'zonawrestling' ) {
 		switch_theme( 'zonawrestling' );
-	}
-	if ( function_exists( 'opcache_reset' ) ) {
-		@opcache_reset();
 	}
 	// Svuota le cache dei blocchi del tema (transient zw_*).
 	global $wpdb;
@@ -99,4 +118,45 @@ function zw_deploy_upload( WP_REST_Request $request ) {
 	), false );
 
 	return zw_deploy_status();
+}
+
+/** Installa o sostituisce un plugin: lo zip contiene la cartella <slug>/ con <slug>.php. */
+function zw_deploy_plugin( WP_REST_Request $request ) {
+	$slug = sanitize_key( (string) $request->get_param( 'slug' ) );
+	if ( ! $slug ) {
+		return new WP_Error( 'zw_slug', 'Parametro slug mancante.', array( 'status' => 400 ) );
+	}
+	$done = zw_deploy_install_zip( $request, $slug, trailingslashit( WP_PLUGIN_DIR ) . $slug, $slug . '.php' );
+	if ( is_wp_error( $done ) ) {
+		return $done;
+	}
+	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	wp_clean_plugins_cache();
+	$file = $slug . '/' . $slug . '.php';
+	if ( $request->get_param( 'activate' ) && ! is_plugin_active( $file ) ) {
+		$res = activate_plugin( $file );
+		if ( is_wp_error( $res ) ) {
+			return $res;
+		}
+	}
+	return array( 'plugin' => $file, 'active' => is_plugin_active( $file ) );
+}
+
+/** Scrive campi personalizzati: { "post": 123, "meta": { "chiave": valore, ... } }; null cancella. */
+function zw_deploy_meta( WP_REST_Request $request ) {
+	$post_id = (int) $request->get_param( 'post' );
+	$meta    = $request->get_param( 'meta' );
+	if ( ! get_post( $post_id ) || ! is_array( $meta ) ) {
+		return new WP_Error( 'zw_meta', 'Servono post e meta.', array( 'status' => 400 ) );
+	}
+	foreach ( $meta as $key => $value ) {
+		$key = sanitize_key( $key );
+		if ( null === $value ) {
+			delete_post_meta( $post_id, $key );
+		} else {
+			update_post_meta( $post_id, $key, $value );
+		}
+	}
+	clean_post_cache( $post_id );
+	return array( 'post' => $post_id, 'keys' => array_keys( $meta ) );
 }
