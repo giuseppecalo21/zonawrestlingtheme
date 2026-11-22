@@ -371,13 +371,23 @@ function zw_related_videos( $post, $count = 8 ) {
 
 	// Candidati: video con tag in comune, video delle stesse categorie, ultimi video.
 	$pool  = array();
-	$base  = array( 'cat' => $video, 'posts_per_page' => 40, 'post__not_in' => array( $post->ID ) );
 	$lists = array();
+	$query = function ( $taxonomy, $terms ) use ( $video, $post ) {
+		return zw_posts( array(
+			'posts_per_page' => 40,
+			'post__not_in'   => array( $post->ID ),
+			'tax_query'      => array(
+				'relation' => 'AND',
+				array( 'taxonomy' => 'category', 'field' => 'term_id', 'terms' => array( $video ) ),
+				array( 'taxonomy' => $taxonomy, 'field' => 'term_id', 'terms' => $terms ),
+			),
+		) );
+	};
 	if ( $tags ) {
-		$lists[] = zw_posts( $base + array( 'tag__in' => $tags ) );
+		$lists[] = $query( 'post_tag', $tags );
 	}
 	if ( $cats ) {
-		$lists[] = zw_posts( array_merge( $base, array( 'cat' => '', 'category__and' => array( $video ), 'category__in' => $cats ) ) );
+		$lists[] = $query( 'category', $cats );
 	}
 	foreach ( $lists as $list ) {
 		foreach ( $list as $candidate ) {
