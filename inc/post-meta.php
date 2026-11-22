@@ -6,16 +6,17 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Sottotitolo: stesso campo usato da Newspaper (`td_subtitle` dentro
- * `td_post_theme_settings`); in mancanza, il riassunto scritto a mano.
+ * Sottotitolo: solo il campo apposito di Newspaper (`td_subtitle` dentro
+ * `td_post_theme_settings`). Se è vuoto non compare nulla: niente ripiego sul
+ * riassunto, che spesso ripete l'attacco dell'articolo.
  */
 function zw_subtitle( $post = null ) {
-	$post     = get_post( $post );
-	$settings = get_post_meta( $post->ID, 'td_post_theme_settings', true );
-	if ( is_array( $settings ) && ! empty( $settings['td_subtitle'] ) ) {
-		return trim( (string) $settings['td_subtitle'] );
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return '';
 	}
-	return has_excerpt( $post ) ? trim( wp_strip_all_tags( $post->post_excerpt ) ) : '';
+	$settings = zw_td_settings( $post->ID );
+	return isset( $settings['td_subtitle'] ) ? trim( wp_strip_all_tags( (string) $settings['td_subtitle'] ) ) : '';
 }
 
 /** Punti del riquadro "In breve" (uno per riga nel campo dell'editor). */
@@ -30,8 +31,8 @@ add_action( 'add_meta_boxes', function () {
 } );
 
 function zw_post_metabox( $post ) {
-	$settings = get_post_meta( $post->ID, 'td_post_theme_settings', true );
-	$subtitle = is_array( $settings ) && isset( $settings['td_subtitle'] ) ? $settings['td_subtitle'] : '';
+	$settings = zw_td_settings( $post->ID );
+	$subtitle = isset( $settings['td_subtitle'] ) ? $settings['td_subtitle'] : '';
 	$newspaper = class_exists( 'td_review' ) || defined( 'TD_THEME_NAME' );
 	wp_nonce_field( 'zw_post_save', 'zw_post_nonce' );
 	?>
@@ -39,7 +40,7 @@ function zw_post_metabox( $post ) {
 	<p>
 		<label for="zw_subtitle"><strong>Sottotitolo</strong></label><br />
 		<input type="text" class="widefat" id="zw_subtitle" name="zw_subtitle" value="<?php echo esc_attr( $subtitle ); ?>" />
-		<span class="description">Compare sotto il titolo dell'articolo. Se vuoto viene usato il riassunto, se compilato.</span>
+		<span class="description">Compare sotto il titolo dell'articolo. Se resta vuoto, sotto il titolo non compare nulla.</span>
 	</p>
 	<?php endif; ?>
 	<p>
@@ -68,8 +69,7 @@ add_action( 'save_post_post', function ( $post_id ) {
 	}
 
 	if ( isset( $_POST['zw_subtitle'] ) ) {
-		$settings = get_post_meta( $post_id, 'td_post_theme_settings', true );
-		$settings = is_array( $settings ) ? $settings : array();
+		$settings = zw_td_settings( $post_id );
 		$subtitle = sanitize_text_field( wp_unslash( $_POST['zw_subtitle'] ) );
 		if ( '' !== $subtitle ) {
 			$settings['td_subtitle'] = $subtitle;

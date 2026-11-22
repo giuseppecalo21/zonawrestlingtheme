@@ -204,3 +204,32 @@ add_action( 'pre_get_posts', function ( $query ) {
 		$query->set( 'no_found_rows', true );
 	}
 } );
+
+/**
+ * Pagina dell'evento: prima il riquadro "Dettagli evento", poi il testo
+ * dell'evento, e solo in fondo l'elenco delle notizie collegate.
+ *
+ * I due riquadri li aggiunge il plugin al testo; qui ci assicuriamo soltanto
+ * dell'ordine, qualunque sia la priorità con cui il plugin li inserisce.
+ * Il testo originale (unico) arriva così subito dopo il titolo, e l'elenco
+ * di link non lo spinge in basso.
+ */
+add_filter( 'the_content', function ( $content ) {
+	if ( ! is_singular( ZW_EVENT_TYPE ) || ! in_the_loop() || ! is_main_query() ) {
+		return $content;
+	}
+	$boxes = array();
+	foreach ( array( 'meta' => 'zw-event-meta-box', 'news' => 'zw-event-news-box' ) as $key => $class ) {
+		$pattern = '#<section\b[^>]*\bclass=(["\'])(?:[^"\']*\s)?' . preg_quote( $class, '#' ) . '(?:\s[^"\']*)?\1[^>]*>.*?</section>#s';
+		if ( preg_match( $pattern, $content, $match ) ) {
+			$boxes[ $key ] = $match[0];
+			$content       = str_replace( $match[0], '', $content );
+		}
+	}
+	if ( ! $boxes ) {
+		return $content;
+	}
+	$meta = isset( $boxes['meta'] ) ? $boxes['meta'] : '';
+	$news = isset( $boxes['news'] ) ? $boxes['news'] : '';
+	return $meta . trim( $content ) . $news;
+}, PHP_INT_MAX );

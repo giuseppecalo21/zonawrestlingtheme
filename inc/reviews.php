@@ -17,6 +17,18 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Impostazioni tagDiv del post (`td_post_theme_settings`) come array.
+ * Regge anche i valori salvati due volte serializzati da vecchie importazioni.
+ */
+function zw_td_settings( $post_id ) {
+	$settings = get_post_meta( (int) $post_id, 'td_post_theme_settings', true );
+	if ( is_string( $settings ) && '' !== $settings ) {
+		$settings = maybe_unserialize( $settings );
+	}
+	return is_array( $settings ) ? $settings : array();
+}
+
 function zw_review_types() {
 	return array(
 		'rate_stars'   => array( 'label' => 'Stelle (da 0,5 a 5)', 'field' => 'p_review_stars', 'max' => 5, 'step' => 0.5 ),
@@ -38,9 +50,9 @@ function zw_review( $post_id = null ) {
 	}
 	$cache[ $post_id ] = null;
 
-	$settings = get_post_meta( $post_id, 'td_post_theme_settings', true );
+	$settings = zw_td_settings( $post_id );
 	$types    = zw_review_types();
-	if ( ! is_array( $settings ) || empty( $settings['has_review'] ) || ! isset( $types[ $settings['has_review'] ] ) ) {
+	if ( empty( $settings['has_review'] ) || ! isset( $types[ $settings['has_review'] ] ) ) {
 		return null;
 	}
 
@@ -124,7 +136,7 @@ function zw_review_box( $post_id = null ) {
 			</div>
 			<?php if ( '' !== trim( $review['summary'] ) ) : ?>
 				<div class="mt-6 pt-5 border-t border-white/10">
-					<span class="block text-[11px] font-sofia font-extrabold uppercase tracking-wider text-zw-redSoft mb-1.5">Sommario</span>
+					<span class="block text-[11px] font-sofia font-extrabold uppercase tracking-wider text-zw-redSoft mb-1.5">Considerazioni finali</span>
 					<p class="text-sm sm:text-[15px] text-white/80 leading-relaxed m-0"><?php echo wp_kses_post( nl2br( $review['summary'] ) ); ?></p>
 				</div>
 			<?php endif; ?>
@@ -147,8 +159,7 @@ add_action( 'add_meta_boxes', function () {
 } );
 
 function zw_review_metabox( $post ) {
-	$settings = get_post_meta( $post->ID, 'td_post_theme_settings', true );
-	$settings = is_array( $settings ) ? $settings : array();
+	$settings = zw_td_settings( $post->ID );
 	$current  = isset( $settings['has_review'] ) ? $settings['has_review'] : '';
 	$types    = zw_review_types();
 	$field    = isset( $types[ $current ] ) ? $types[ $current ]['field'] : 'p_review_points';
@@ -178,7 +189,7 @@ function zw_review_metabox( $post ) {
 	</table>
 	<p class="description">Il voto finale è la media dei criteri. Per aggiungere altre righe salva l'articolo: ne compaiono sempre tre vuote. Una riga senza voto viene ignorata.</p>
 	<p>
-		<label for="zw_review_summary"><strong>Sommario</strong></label><br />
+		<label for="zw_review_summary"><strong>Considerazioni finali</strong></label> <span class="description">(è il "Sommario" della recensione di Newspaper: stesso campo)</span><br />
 		<textarea name="zw_review[summary]" id="zw_review_summary" rows="4" class="widefat" style="max-width:720px"><?php echo esc_textarea( isset( $settings['review'] ) ? $settings['review'] : '' ); ?></textarea>
 	</p>
 	<?php
@@ -195,8 +206,7 @@ add_action( 'save_post_post', function ( $post_id ) {
 	$input    = wp_unslash( $_POST['zw_review'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 	$types    = zw_review_types();
 	$type     = isset( $input['type'] ) && isset( $types[ $input['type'] ] ) ? $input['type'] : '';
-	$settings = get_post_meta( $post_id, 'td_post_theme_settings', true );
-	$settings = is_array( $settings ) ? $settings : array();
+	$settings = zw_td_settings( $post_id );
 
 	if ( ! $type ) {
 		// Tolta la valutazione: resta il resto delle impostazioni tagDiv del post.

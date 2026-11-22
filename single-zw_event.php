@@ -1,7 +1,8 @@
 <?php
 /**
  * Pagina di un evento. Il riquadro "Dettagli evento" e l'elenco delle notizie
- * collegate sono aggiunti al testo dal plugin ZW Events Calendar.
+ * collegate sono aggiunti al testo dal plugin ZW Events Calendar; il tema li
+ * rimette in ordine (dettagli, testo, notizie) in inc/events.php.
  */
 
 defined( 'ABSPATH' ) || exit;

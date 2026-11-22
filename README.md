@@ -15,9 +15,9 @@ Tema WordPress di [ZonaWrestling.net](https://zonawrestling.net/). Tema classico
 
 | Funzione | Come |
 | --- | --- |
-| Valutazioni delle analisi | Lette e scritte negli stessi campi di tagDiv Newspaper: `td_post_theme_settings` (`has_review`, `p_review_stars` / `p_review_percents` / `p_review_points`, `review`) e `td_review_key`. Nessuna migrazione. |
-| Sottotitolo degli articoli | Campo `td_subtitle` di Newspaper. |
-| Eventi | Plugin ZW Events Calendar: tipo `zw_event`, tassonomia `zw_federation`, campi `_zw_event_date`, `_zw_event_venue`, `_zw_event_city`, `_zw_event_related_tags`. |
+| Valutazioni delle analisi | Lette e scritte negli stessi campi di tagDiv Newspaper: `td_post_theme_settings` (`has_review`, `p_review_stars` / `p_review_percents` / `p_review_points`, `review` per le considerazioni finali, il «Sommario» di Newspaper) e `td_review_key`. Nessuna migrazione. |
+| Sottotitolo degli articoli | Campo `td_subtitle` di Newspaper. Se è vuoto non compare nulla (nessun ripiego sul riassunto). |
+| Eventi | Plugin ZW Events Calendar: tipo `zw_event`, tassonomia `zw_federation`, campi `_zw_event_date`, `_zw_event_venue`, `_zw_event_city`, `_zw_event_related_tags`. Nella pagina evento il tema fissa l'ordine: «Dettagli evento», testo dell'evento, elenco delle notizie. |
 | Stelline dei singoli match | Plugin Universal Star Rating (shortcode nel testo): resta attivo com'è. |
 | Commenti | Plugin Disqus: il tema chiama il normale modulo commenti, che Disqus sostituisce. |
 | Profili social degli autori | Stessi campi del profilo utente usati da Newspaper. |
