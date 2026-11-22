@@ -12,6 +12,7 @@ import os
 import secrets
 import sys
 import time
+from datetime import datetime, timedelta
 
 import requests
 
@@ -25,6 +26,12 @@ PLAN = {
     "wwe": 4, "aew": 4, "njpw": 3, "tna": 3, "stardom": 3, "cmll": 3, "aaa": 3, "italia": 4,
 }
 LATEST = 20  # più gli ultimi N articoli in assoluto
+
+# Categorie madri di cui si usano le sottocategorie (gli articoli stanno lì):
+# slug madre -> (più recenti fra tutte le figlie, più recenti per ogni figlia).
+# Per ogni figlia si tengono solo articoli dell'ultimo anno (salta i programmi chiusi).
+CHILDREN = {"news": (40, 3), "show-analysis": (12, 2)}
+RECENT_DAYS = 365
 
 src = requests.Session()
 src.headers["User-Agent"] = "zw-theme-test-import"
@@ -131,6 +138,17 @@ def collect():
         for p in get_json(src, f"{SRC}/posts", categories=cats[0]["id"], per_page=n, _embed=1):
             posts.setdefault(p["id"], p)
         time.sleep(0.3)
+    cutoff = (datetime.now() - timedelta(days=RECENT_DAYS)).isoformat()
+    for slug, (top, per_child) in CHILDREN.items():
+        parent = get_json(src, f"{SRC}/categories", slug=slug)[0]["id"]
+        kids = get_json(src, f"{SRC}/categories", parent=parent, per_page=100)
+        ids = ",".join(str(k["id"]) for k in kids)
+        for p in get_json(src, f"{SRC}/posts", categories=ids, per_page=top, _embed=1):
+            posts.setdefault(p["id"], p)
+        for k in kids:
+            for p in get_json(src, f"{SRC}/posts", categories=k["id"], per_page=per_child, _embed=1, after=cutoff):
+                posts.setdefault(p["id"], p)
+            time.sleep(0.2)
     return sorted(posts.values(), key=lambda p: p["date"])
 
 
