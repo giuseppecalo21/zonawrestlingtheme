@@ -48,7 +48,7 @@ function zw_stories_data() {
 			'id'     => (int) $term->term_id,
 			'slug'   => $term->slug,
 			'label'  => $term->name,
-			'short'  => mb_strtoupper( mb_substr( $term->name, 0, 5 ) ),
+			'short'  => mb_strtoupper( mb_substr( $term->name, 0, 7 ) ),
 			'logo'   => $logo ? $logo[0] : '',
 			'url'    => get_category_link( $term ),
 			'latest' => $posts[0]->ID,

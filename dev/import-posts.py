@@ -152,33 +152,39 @@ def collect():
     return sorted(posts.values(), key=lambda p: p["date"])
 
 
+def import_post(p, label=""):
+    """Copia un articolo (dati dell'API con _embed). Restituisce l'ID sul sito di prova."""
+    found = dst_find("posts", p["slug"])
+    if found:
+        print(f"[{label}] già presente: {p['slug']}")
+        return found["id"]
+    emb = p.get("_embedded", {})
+    author = ensure_author((emb.get("author") or [{}])[0])
+    cats = [ensure_category(c) for c in p["categories"]]
+    tags = []
+    for group in emb.get("wp:term", []):
+        tags += [t for t in group if t.get("taxonomy") == "post_tag"]
+    media = ensure_media((emb.get("wp:featuredmedia") or [None])[0], author)
+    r = dst.post(f"{DST}/posts", json={
+        "title": p["title"]["rendered"], "slug": p["slug"], "status": "publish",
+        "date": p["date"], "content": p["content"]["rendered"], "excerpt": p["excerpt"]["rendered"],
+        "author": author, "categories": cats, "tags": ensure_tags(tags),
+        "featured_media": media, "format": p.get("format", "standard"),
+        "comment_status": "closed",
+    }, timeout=120)
+    if not r.ok:
+        print(f"[{label}] ERRORE {r.status_code} {p['slug']}: {r.text[:200]}", file=sys.stderr)
+        return None
+    print(f"[{label}] ok: {p['title']['rendered'][:70]}")
+    time.sleep(0.3)
+    return r.json()["id"]
+
+
 def main():
     posts = collect()
     print(f"{len(posts)} articoli da copiare")
     for i, p in enumerate(posts, 1):
-        if dst_find("posts", p["slug"]):
-            print(f"[{i}] già presente: {p['slug']}")
-            continue
-        emb = p.get("_embedded", {})
-        author = ensure_author((emb.get("author") or [{}])[0])
-        cats = [ensure_category(c) for c in p["categories"]]
-        tags = []
-        for group in emb.get("wp:term", []):
-            tags += [t for t in group if t.get("taxonomy") == "post_tag"]
-        media = ensure_media((emb.get("wp:featuredmedia") or [None])[0], author)
-        r = dst.post(f"{DST}/posts", json={
-            "title": p["title"]["rendered"], "slug": p["slug"], "status": "publish",
-            "date": p["date"], "content": p["content"]["rendered"], "excerpt": p["excerpt"]["rendered"],
-            "author": author, "categories": cats, "tags": ensure_tags(tags),
-            "featured_media": media, "format": p.get("format", "standard"),
-            "comment_status": "closed",
-        }, timeout=120)
-        if not r.ok:
-            print(f"[{i}] ERRORE {r.status_code} {p['slug']}: {r.text[:200]}", file=sys.stderr)
-            continue
-        print(f"[{i}] ok: {p['title']['rendered'][:70]}")
-        time.sleep(0.3)
-
+        import_post(p, str(i))
 
 if __name__ == "__main__":
     main()
