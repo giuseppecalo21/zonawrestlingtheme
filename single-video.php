@@ -21,6 +21,9 @@ $zw_tags     = get_the_tags();
 $zw_related  = zw_related_videos( get_post(), 9 );
 $zw_next     = array_slice( $zw_related, 0, 5 );
 $zw_more     = array_slice( $zw_related, 5 );
+if ( count( $zw_more ) < 2 ) {
+	$zw_more = array(); // Un video da solo in "Altri video" non serve: sta già tutto a fianco del player.
+}
 $zw_poster   = $zw_video ? zw_video_poster( get_post(), $zw_video ) : '';
 $zw_duration = ! empty( $zw_info['duration'] ) ? zw_video_duration( $zw_info['duration'] ) : '';
 $zw_service  = $zw_video ? zw_video_provider_name( $zw_video['provider'] ) : '';

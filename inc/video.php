@@ -343,7 +343,12 @@ function zw_video_provider_name( $provider ) {
 }
 
 /* ---------------------------------------------------------------------------
- * Video correlati: prima quelli della stessa federazione, poi gli ultimi.
+ * Video correlati.
+ *
+ * Punteggio: ogni tag in comune vale 3, ogni categoria in comune (WWE, MLW,
+ * SmackDown...; escluse Video, News e le categorie nascoste) vale 2. A parità di
+ * punteggio vince il video più vicino nel tempo a quello che si sta guardando.
+ * Se non bastano, si completa con gli ultimi video usciti.
  * ------------------------------------------------------------------------- */
 
 function zw_related_videos( $post, $count = 8 ) {
@@ -352,20 +357,49 @@ function zw_related_videos( $post, $count = 8 ) {
 	if ( ! $post || ! $video ) {
 		return array();
 	}
-	$feds = array();
-	foreach ( (array) get_the_category( $post ) as $cat ) {
-		if ( in_array( $cat->slug, zw_opt_list( 'fed_cats' ), true ) ) {
-			$feds[] = (int) $cat->term_id;
+
+	$skip_cats = array_filter( array( $video, zw_cat_id( 'news' ) ) );
+	foreach ( zw_opt_list( 'hidden_cats' ) as $slug ) {
+		$term = get_category_by_slug( $slug );
+		if ( $term ) {
+			$skip_cats[] = (int) $term->term_id;
 		}
 	}
-	$posts = array();
-	if ( $feds ) {
-		$posts = zw_posts( array(
-			'category__and'  => array( $video, $feds[0] ),
-			'posts_per_page' => $count,
-			'post__not_in'   => array( $post->ID ),
-		) );
+	$cats = array_values( array_diff( wp_get_post_categories( $post->ID ), $skip_cats ) );
+	$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
+	$tags = is_wp_error( $tags ) ? array() : array_map( 'intval', $tags );
+
+	// Candidati: video con tag in comune, video delle stesse categorie, ultimi video.
+	$pool  = array();
+	$base  = array( 'cat' => $video, 'posts_per_page' => 40, 'post__not_in' => array( $post->ID ) );
+	$lists = array();
+	if ( $tags ) {
+		$lists[] = zw_posts( $base + array( 'tag__in' => $tags ) );
 	}
+	if ( $cats ) {
+		$lists[] = zw_posts( array_merge( $base, array( 'cat' => '', 'category__and' => array( $video ), 'category__in' => $cats ) ) );
+	}
+	foreach ( $lists as $list ) {
+		foreach ( $list as $candidate ) {
+			$pool[ $candidate->ID ] = $candidate;
+		}
+	}
+
+	$ref    = strtotime( $post->post_date_gmt );
+	$scored = array();
+	foreach ( $pool as $id => $candidate ) {
+		$c_tags = wp_get_post_tags( $id, array( 'fields' => 'ids' ) );
+		$c_tags = is_wp_error( $c_tags ) ? array() : array_map( 'intval', $c_tags );
+		$score  = 3 * count( array_intersect( $tags, $c_tags ) ) + 2 * count( array_intersect( $cats, wp_get_post_categories( $id ) ) );
+		if ( $score > 0 ) {
+			$scored[] = array( $score, abs( strtotime( $candidate->post_date_gmt ) - $ref ), $candidate );
+		}
+	}
+	usort( $scored, function ( $x, $y ) {
+		return $y[0] <=> $x[0] ?: $x[1] <=> $y[1];
+	} );
+	$posts = array_slice( wp_list_pluck( $scored, 2 ), 0, $count );
+
 	if ( count( $posts ) < $count ) {
 		$posts = array_merge( $posts, zw_posts( array(
 			'cat'            => $video,
