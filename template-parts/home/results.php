@@ -15,7 +15,7 @@ zw_fragment( 'home_results', 10 * MINUTE_IN_SECONDS, function () {
 	}
 	?>
 	<section id="risultati" class="relative z-10 max-w-[1380px] mx-auto px-4 sm:px-6 pt-1 pb-4" aria-label="Ultimi risultati">
-		<div class="zw-geo-card bg-[#141722]/95 backdrop-blur-xl p-1.5 nf-shadow-dark" id="resultsBar" style="border-radius: var(--pill-radius);">
+		<div class="zw-geo-card bg-[#141722]/95 p-1.5 nf-shadow-dark" id="resultsBar" style="border-radius: var(--pill-radius);">
 			<div class="flex items-center justify-between gap-2 sm:gap-3">
 
 				<a href="<?php echo esc_url( zw_cat_url( 'cat_results' ) ); ?>" class="flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-full bg-zw-red text-white shrink-0 z-10">

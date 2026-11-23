@@ -43,11 +43,17 @@ zw_fragment( 'home_hero', 10 * MINUTE_IN_SECONDS, function () {
 				<?php foreach ( $slides as $i => $post ) : $labels = zw_post_labels( $post ); ?>
 					<a href="<?php echo esc_url( get_permalink( $post ) ); ?>" class="zw-hero-slide <?php echo 0 === $i ? 'is-active' : ''; ?> group absolute inset-0 block overflow-hidden" data-hero-slide="<?php echo (int) $i; ?>" <?php echo 0 === $i ? '' : 'tabindex="-1" aria-hidden="true"'; ?>>
 						<?php
-						echo zw_post_image( $post, 1100, array( // phpcs:ignore
+						$img = zw_post_image( $post, 1100, array(
 							'class'         => 'w-full h-full object-cover nf-img-zoom',
 							'sizes'         => '(max-width: 1024px) 100vw, 780px',
 							'fetchpriority' => 0 === $i ? 'high' : '',
 						) );
+						if ( $i > 0 ) {
+							// Slide nascoste ma dentro lo schermo: "lazy" non basta, il browser le scaricherebbe
+							// subito togliendo banda alla prima (LCP). Le carica lo script, dopo il caricamento.
+							$img = str_replace( array( ' src="', ' srcset="' ), array( ' data-zw-src="', ' data-zw-srcset="' ), $img );
+						}
+						echo $img; // phpcs:ignore
 						?>
 						<span class="absolute inset-0 nf-vignette-hero"></span>
 
@@ -103,7 +109,7 @@ zw_fragment( 'home_hero', 10 * MINUTE_IN_SECONDS, function () {
 					}
 					?>
 					<article class="nf-card relative <?php echo $wide ? 'h-[245px] sm:h-[252px]' : 'h-[252px]'; ?> rounded-[22px] overflow-hidden bg-zw-surfaceDark nf-shadow-dark group">
-						<?php echo zw_post_image( $post, $wide ? 800 : 440, array( 'class' => 'w-full h-full object-cover nf-img-zoom opacity-85', 'sizes' => $wide ? '(max-width: 1024px) 100vw, 550px' : '270px' ) ); // phpcs:ignore ?>
+						<?php echo zw_post_image( $post, $wide ? 800 : 440, array( 'class' => 'w-full h-full object-cover nf-img-zoom opacity-85', 'sizes' => $wide ? '(max-width: 1024px) 100vw, 550px' : '270px', 'loading' => $wide ? 'eager' : 'lazy' ) ); // phpcs:ignore ?>
 						<div class="absolute inset-0 nf-vignette-card"></div>
 						<div class="absolute top-4 left-4 right-4 flex items-center justify-between gap-2">
 							<?php if ( $badge ) : ?>

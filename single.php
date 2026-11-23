@@ -129,8 +129,13 @@ zw_stage_open();
 			<?php if ( comments_open() || get_comments_number() ) : ?>
 				<section id="commenti" class="mt-10">
 					<?php zw_section_title( 'Commenti' ); ?>
-					<div class="bg-white rounded-[22px] nf-shadow-light p-4 sm:p-6 zw-comments">
-						<?php comments_template(); ?>
+					<div class="bg-white rounded-[22px] nf-shadow-light p-4 sm:p-6 zw-comments min-h-[240px]" data-zw-defer>
+						<?php
+						// Disqus (o altro) parte solo quando il lettore si avvicina ai commenti.
+						ob_start();
+						comments_template();
+						echo zw_defer_scripts( ob_get_clean() ); // phpcs:ignore
+						?>
 					</div>
 				</section>
 			<?php endif; ?>

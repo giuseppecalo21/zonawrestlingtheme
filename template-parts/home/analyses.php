@@ -27,7 +27,8 @@ zw_fragment( 'home_analyses', 10 * MINUTE_IN_SECONDS, function () {
 			</div>
 		</div>
 
-		<div id="analysesTrack" class="flex items-stretch gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x pt-5 -mt-5 pb-16 -mb-14 px-6 -mx-6">
+		<?php // scroll-px-6 allinea l'aggancio al margine: senza, al caricamento il carosello scatta da solo e Chrome smette di misurare l'LCP. ?>
+		<div id="analysesTrack" class="flex items-stretch gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x scroll-px-6 pt-5 -mt-5 pb-16 -mb-14 px-6 -mx-6">
 			<?php foreach ( $posts as $post ) : $labels = zw_post_labels( $post ); $stars = zw_review_stars( $post->ID ); ?>
 				<article class="nf-card snap-start shrink-0 w-[85%] sm:w-[46%] lg:w-[calc(33.333%-14px)] aspect-video rounded-[20px] overflow-hidden relative bg-zw-surfaceDark nf-shadow-dark group">
 					<div class="absolute inset-0"><?php echo zw_post_image( $post, 700, array( 'class' => 'w-full h-full object-cover nf-img-zoom', 'sizes' => '(max-width: 640px) 85vw, 440px' ) ); // phpcs:ignore ?></div>

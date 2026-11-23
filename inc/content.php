@@ -43,6 +43,56 @@ add_filter( 'embed_oembed_html', function ( $html, $url ) {
 	return $html;
 }, 10, 2 );
 
+/*
+ * YouTube nel testo: al posto del player (centinaia di KB di script, pesanti per l'INP)
+ * c'è la copertina con il tasto play; il player vero si carica al clic, nello stesso
+ * riquadro 16:9 (nessuno spostamento della pagina). Vale per ogni iframe di YouTube:
+ * blocco embed, oEmbed e iframe incollati negli articoli vecchi. Senza JavaScript resta
+ * il link al video. Gli articoli video hanno già il loro player grande e restano esclusi.
+ */
+add_filter( 'the_content', function ( $content ) {
+	if ( is_admin() || is_feed() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ! is_singular() || false === stripos( $content, 'youtube' ) ) {
+		return $content;
+	}
+	if ( function_exists( 'zw_is_video_post' ) && zw_is_video_post( get_post() ) ) {
+		return $content;
+	}
+	return preg_replace_callback( '#<iframe\b[^>]*\bsrc=["\']([^"\']*(?:youtube\.com|youtube-nocookie\.com)/embed/([A-Za-z0-9_-]{11})[^"\']*)["\'][^>]*>\s*</iframe>#i', 'zw_youtube_facade', $content );
+}, 30 );
+
+/** Copertina cliccabile al posto di un iframe di YouTube (callback di preg_replace_callback). */
+function zw_youtube_facade( $m ) {
+	$src   = html_entity_decode( $m[1], ENT_QUOTES, 'UTF-8' );
+	$src   = 0 === strpos( $src, '//' ) ? 'https:' . $src : $src;
+	$id    = $m[2];
+	$title = preg_match( '#\btitle=["\']([^"\']*)["\']#i', $m[0], $t ) ? html_entity_decode( $t[1], ENT_QUOTES, 'UTF-8' ) : 'Video';
+	return sprintf(
+		'<span class="zw-yt" data-zw-player="%1$s" data-title="%2$s"><button type="button" aria-label="%3$s"><img src="https://i.ytimg.com/vi/%4$s/hqdefault.jpg" alt="" width="480" height="360" loading="lazy" decoding="async" /><span class="zw-yt-play" aria-hidden="true"></span></button><noscript><a href="https://www.youtube.com/watch?v=%4$s">%2$s</a></noscript></span>',
+		esc_url( add_query_arg( 'autoplay', '1', $src ) ),
+		esc_attr( $title ),
+		esc_attr( 'Guarda il video: ' . $title ),
+		esc_attr( $id )
+	);
+}
+
+/**
+ * Script di un blocco di HTML resi "in attesa": li esegue main.js quando il blocco
+ * si avvicina allo schermo. Usato per i commenti (Disqus carica embed.js appena la
+ * pagina si apre, anche per chi non arriva mai in fondo all'articolo).
+ */
+function zw_defer_scripts( $html ) {
+	return preg_replace_callback( '#<script\b([^>]*)>#i', function ( $m ) {
+		$attrs = $m[1];
+		if ( preg_match( '#\btype\s*=\s*["\']?([^"\'\s>]+)#i', $attrs, $type ) ) {
+			if ( ! in_array( strtolower( $type[1] ), array( 'text/javascript', 'application/javascript', 'module' ), true ) ) {
+				return $m[0]; // JSON-LD, template e simili restano come sono.
+			}
+			$attrs = preg_replace( '#\btype\s*=\s*["\']?[^"\'\s>]+["\']?#i', '', $attrs );
+		}
+		return '<script type="text/zw-deferred"' . $attrs . '>';
+	}, $html );
+}
+
 /** Link di condivisione dell'articolo corrente. */
 function zw_share_links( $post = null ) {
 	$url   = rawurlencode( get_permalink( $post ) );

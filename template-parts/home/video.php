@@ -19,7 +19,7 @@ zw_fragment( 'home_video', 10 * MINUTE_IN_SECONDS, function () {
 		return $labels['fed'] ? $labels['fed'] : $labels['label'];
 	};
 	?>
-	<div class="bg-zw-velvet text-white py-14">
+	<div class="zw-cv zw-cv-video bg-zw-velvet text-white py-14">
 		<section id="video" class="max-w-[1380px] mx-auto px-4 sm:px-6" aria-labelledby="videoTitle">
 			<div class="flex items-center gap-3 mb-7">
 				<span class="w-3 h-7 rounded-full bg-zw-red inline-block nf-red-glow"></span>

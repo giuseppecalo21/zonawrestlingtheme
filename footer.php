@@ -8,7 +8,7 @@ defined( 'ABSPATH' ) || exit;
 $zw_social = zw_social_links();
 $zw_items  = function_exists( 'zw_menu_items' ) ? zw_menu_items() : array();
 ?>
-	<footer class="bg-[#07070a] text-white/55 py-12 px-4 sm:px-6">
+	<footer class="zw-cv zw-cv-footer bg-[#07070a] text-white/55 py-12 px-4 sm:px-6">
 		<div class="max-w-[1380px] mx-auto">
 			<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
 				<div class="flex items-center gap-3.5">

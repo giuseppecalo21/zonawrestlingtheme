@@ -21,8 +21,18 @@ add_action( 'after_setup_theme', function () {
 		'footer'  => 'Menu footer',
 	) );
 
-	// Nessuna nuova dimensione immagine: il tema sceglie tra quelle già generate
-	// (comprese quelle create da Newspaper), così non serve rigenerare l'archivio.
+	// Due tagli proporzionali (senza ritaglio), usati anche per i nuovi caricamenti
+	// quando Newspaper non c'è più. Le immagini vecchie continuano a usare i tagli
+	// già presenti (compresi quelli di Newspaper): non serve rigenerare l'archivio.
+	// - zw-card: card del feed e liste (tra i 300 e i 768 di WordPress);
+	// - zw-wide: 1200 px, la larghezza minima chiesta da Google Discover.
+	add_image_size( 'zw-card', 560, 0, false );
+	add_image_size( 'zw-wide', 1200, 0, false );
+} );
+
+// Nei srcset niente varianti oltre i 1536 px: sugli schermi 3x di 2048 px non c'è bisogno.
+add_filter( 'max_srcset_image_width', function () {
+	return 1536;
 } );
 
 if ( ! isset( $content_width ) ) {
@@ -73,12 +83,6 @@ add_action( 'wp_enqueue_scripts', function () {
 	$css = ZW_DIR . '/assets/css/main.css';
 	$js  = ZW_DIR . '/assets/js/main.js';
 
-	wp_enqueue_style(
-		'zw-fonts',
-		'https://fonts.googleapis.com/css2?family=Chivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sofia+Sans+Condensed:wght@800;900&family=Sofia+Sans:wght@600;700;800;900&display=swap',
-		array(),
-		null
-	);
 	wp_enqueue_style( 'zw-main', ZW_URI . '/assets/css/main.css', array(), file_exists( $css ) ? filemtime( $css ) : ZW_VERSION );
 	wp_enqueue_script( 'zw-main', ZW_URI . '/assets/js/main.js', array(), file_exists( $js ) ? filemtime( $js ) : ZW_VERSION, array( 'strategy' => 'defer', 'in_footer' => true ) );
 
@@ -99,13 +103,11 @@ add_action( 'wp_enqueue_scripts', function () {
 	}
 }, 20 );
 
-add_filter( 'wp_resource_hints', function ( $urls, $relation ) {
-	if ( 'preconnect' === $relation ) {
-		$urls[] = array( 'href' => 'https://fonts.googleapis.com' );
-		$urls[] = array( 'href' => 'https://fonts.gstatic.com', 'crossorigin' => 'anonymous' );
-	}
-	return $urls;
-}, 10, 2 );
+// Il font dei titoli (anche quello dell'articolo, sopra la piega) arriva subito:
+// meno "salti" del testo quando il font sostituisce quello di sistema.
+add_action( 'wp_head', function () {
+	printf( '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin />' . "\n", esc_url( ZW_URI . '/assets/fonts/sofia-sans-latin.woff2' ) );
+}, 2 );
 
 add_filter( 'body_class', function ( $classes ) {
 	$classes[] = 'antialiased';
@@ -126,5 +128,12 @@ add_action( 'pre_get_posts', function ( $query ) {
 	}
 	if ( $query->is_search() ) {
 		$query->set( 'post_type', 'post' );
+	}
+	// Home impostata su "ultimi articoli": front-page.php non usa la query principale,
+	// quindi basta un solo articolo e nessun conteggio (SQL_CALC_FOUND_ROWS).
+	// Con una pagina statica come home (il caso di zonawrestling.net) non cambia nulla.
+	if ( $query->is_home() && $query->is_front_page() && ! $query->is_feed() && ! $query->is_paged() ) {
+		$query->set( 'posts_per_page', 1 );
+		$query->set( 'no_found_rows', true );
 	}
 } );

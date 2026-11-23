@@ -24,12 +24,14 @@ function zw_views_install() {
 		PRIMARY KEY  (post_id, day),
 		KEY day_views (day, views)
 	) " . $wpdb->get_charset_collate() . ';' );
-	update_option( 'zw_views_db', '1', false );
+	// Opzione caricata in automatico con le altre: leggerla a ogni richiesta non costa query.
+	update_option( 'zw_views_ver', '1', true );
+	delete_option( 'zw_views_db' ); // Vecchio nome, non caricato in automatico.
 }
 
 add_action( 'after_switch_theme', 'zw_views_install' );
 add_action( 'init', function () {
-	if ( '1' !== get_option( 'zw_views_db' ) ) {
+	if ( '1' !== get_option( 'zw_views_ver' ) ) {
 		zw_views_install();
 	}
 	if ( ! wp_next_scheduled( 'zw_views_cleanup' ) ) {
@@ -74,7 +76,7 @@ function zw_most_read( $count = 5 ) {
 	if ( ! is_array( $ids ) ) {
 		global $wpdb;
 		$ids = array();
-		if ( '1' === get_option( 'zw_views_db' ) ) {
+		if ( '1' === get_option( 'zw_views_ver' ) ) {
 			foreach ( array( 0, 1 ) as $days_ago ) {
 				if ( count( $ids ) >= $count ) {
 					break;

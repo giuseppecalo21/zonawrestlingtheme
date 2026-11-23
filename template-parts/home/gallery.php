@@ -20,7 +20,7 @@ zw_fragment( 'home_gallery', 10 * MINUTE_IN_SECONDS, function () {
 		return $labels['fed'] ? $labels['fed'] : $labels['label'];
 	};
 	?>
-	<section id="gallery" class="max-w-[1380px] mx-auto px-4 sm:px-6 pb-14" aria-labelledby="galleryTitle">
+	<section id="gallery" class="zw-cv max-w-[1380px] mx-auto px-4 sm:px-6 pb-14" aria-labelledby="galleryTitle">
 		<div class="flex flex-wrap items-center justify-between gap-4 mb-7 px-1">
 			<div class="flex items-center gap-3">
 				<span class="w-3 h-8 rounded-full bg-zw-red inline-block nf-red-glow"></span>

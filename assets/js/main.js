@@ -156,6 +156,49 @@
 	} );
 
 	/* -----------------------------------------------------------------------
+	 * Fasce con content-visibility (gallery, video, footer): all'apertura il browser
+	 * non le impagina; a ~1500 px di distanza tornano normali, così le loro immagini
+	 * "lazy" partono con il solito anticipo e non si vedono riquadri vuoti.
+	 * --------------------------------------------------------------------- */
+	( function () {
+		var bands = $$( '.zw-cv' );
+		if ( ! bands.length || ! ( 'IntersectionObserver' in window ) ) { return; }
+		var io = new IntersectionObserver( function ( entries ) {
+			entries.forEach( function ( e ) {
+				if ( e.isIntersecting ) { e.target.style.contentVisibility = 'visible'; io.unobserve( e.target ); }
+			} );
+		}, { rootMargin: '1500px 0px' } );
+		bands.forEach( function ( band ) { io.observe( band ); } );
+	} )();
+
+	/* -----------------------------------------------------------------------
+	 * Blocchi con script in attesa (commenti/Disqus): partono quando il blocco
+	 * è a circa uno schermo di distanza. Vedi zw_defer_scripts() in content.php.
+	 * --------------------------------------------------------------------- */
+	$$( '[data-zw-defer]' ).forEach( function ( box ) {
+		var done = false;
+		function run() {
+			if ( done ) { return; }
+			done = true;
+			$$( 'script[type="text/zw-deferred"]', box ).forEach( function ( old ) {
+				var script = document.createElement( 'script' );
+				Array.prototype.forEach.call( old.attributes, function ( attr ) {
+					if ( attr.name !== 'type' ) { script.setAttribute( attr.name, attr.value ); }
+				} );
+				script.text = old.text;
+				old.parentNode.replaceChild( script, old );
+			} );
+		}
+		if ( ! ( 'IntersectionObserver' in window ) ) { run(); return; }
+		var io = new IntersectionObserver( function ( entries ) {
+			if ( entries.some( function ( e ) { return e.isIntersecting; } ) ) { io.disconnect(); run(); }
+		}, { rootMargin: '900px 0px' } );
+		io.observe( box );
+		// Chi apre l'articolo direttamente sui commenti li vede subito.
+		if ( /^#(commenti|comments|disqus_thread|comment-)/.test( window.location.hash ) ) { run(); }
+	} );
+
+	/* -----------------------------------------------------------------------
 	 * Pagina evento: "Carica altre notizie"
 	 * --------------------------------------------------------------------- */
 	( function () {
@@ -193,8 +236,25 @@
 		var current = 0;
 		var timer = null;
 
+		// Le immagini delle slide successive alla prima arrivano senza src (vedi hero.php).
+		function hydrate( slide ) {
+			var img = slide && $( 'img[data-zw-src]', slide );
+			if ( ! img ) { return; }
+			if ( img.getAttribute( 'data-zw-srcset' ) ) { img.srcset = img.getAttribute( 'data-zw-srcset' ); }
+			img.src = img.getAttribute( 'data-zw-src' );
+			img.removeAttribute( 'data-zw-src' );
+			img.removeAttribute( 'data-zw-srcset' );
+		}
+		function hydrateAll() { slides.forEach( hydrate ); }
+		if ( document.readyState === 'complete' ) {
+			window.setTimeout( hydrateAll, 300 );
+		} else {
+			window.addEventListener( 'load', function () { window.setTimeout( hydrateAll, 300 ); } );
+		}
+
 		function show( index ) {
 			current = ( index + slides.length ) % slides.length;
+			hydrate( slides[ current ] );
 			slides.forEach( function ( slide, i ) {
 				var on = i === current;
 				slide.classList.toggle( 'is-active', on );
@@ -421,7 +481,16 @@
 		function load( append ) {
 			if ( state.busy ) { return; }
 			state.busy = true;
+			// Filtro: la lista resta al suo posto, solo attenuata (nessuno spostamento della pagina).
+			// "Carica altre": il pulsante dice che sta caricando.
 			list.classList.add( 'is-loading' );
+			list.setAttribute( 'aria-busy', 'true' );
+			var moreLabel = more ? more.textContent : '';
+			if ( append && more ) {
+				more.textContent = 'Caricamento…';
+				more.setAttribute( 'aria-busy', 'true' );
+				more.classList.add( 'is-loading' );
+			}
 			var url = ZW.rest + 'zw/v1/feed?cat=' + state.cat + '&page=' + state.page + '&live=' + state.live;
 			fetch( url, { credentials: 'omit' } )
 				.then( function ( response ) { if ( ! response.ok ) { throw new Error( 'HTTP ' + response.status ); } return response.json(); } )
@@ -440,6 +509,12 @@
 				.then( function () {
 					state.busy = false;
 					list.classList.remove( 'is-loading' );
+					list.removeAttribute( 'aria-busy' );
+					if ( append && more ) {
+						more.textContent = moreLabel;
+						more.removeAttribute( 'aria-busy' );
+						more.classList.remove( 'is-loading' );
+					}
 				} );
 		}
 
@@ -484,6 +559,8 @@
 			if ( query.length < 3 ) { lastQuery = ''; return; }
 			timer = window.setTimeout( function () {
 				lastQuery = query;
+				results.setAttribute( 'aria-busy', 'true' );
+				results.innerHTML = '<p class="text-xs text-white/50 py-4 text-center zw-pulse">Cerco «' + escapeHtml( query ) + '»…</p>';
 				fetch( ZW.rest + 'wp/v2/search?type=post&subtype=post&per_page=6&_fields=title,url&search=' + encodeURIComponent( query ), { credentials: 'omit' } )
 					.then( function ( response ) { return response.ok ? response.json() : []; } )
 					.then( function ( items ) {
@@ -499,7 +576,10 @@
 							return '<a href="' + encodeURI( item.url ) + '" class="block px-4 py-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.1] font-sofia font-bold text-sm text-white transition-colors">' + escapeHtml( decoder.value ) + '</a>';
 						} ).join( '' ) + '<a href="' + encodeURI( ZW.home ) + '?s=' + encodeURIComponent( query ) + '" class="block text-center text-xs font-sofia font-extrabold text-zw-redSoft py-2">Vedi tutti i risultati →</a>';
 					} )
-					.catch( function () {} );
+					.catch( function () {
+						if ( query === lastQuery ) { results.innerHTML = '<p class="text-xs text-white/50 py-4 text-center">Ricerca non riuscita: premi Invio per la pagina dei risultati.</p>'; }
+					} )
+					.then( function () { results.removeAttribute( 'aria-busy' ); } );
 			}, 260 );
 		} );
 	} )();
@@ -517,7 +597,8 @@
 				var rect = article.getBoundingClientRect();
 				var total = rect.height - window.innerHeight * 0.5;
 				var done = Math.min( Math.max( -rect.top + window.innerHeight * 0.3, 0 ), total );
-				bar.style.width = ( total > 0 ? ( done / total ) * 100 : 0 ) + '%';
+				// scaleX invece di width: l'animazione resta sulla GPU, senza ricalcoli di layout.
+				bar.style.transform = 'scaleX(' + ( total > 0 ? done / total : 0 ).toFixed( 4 ) + ')';
 			};
 			var onScroll = function () {
 				if ( ! ticking ) { ticking = true; window.requestAnimationFrame( update ); }

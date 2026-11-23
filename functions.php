@@ -21,3 +21,4 @@ require ZW_DIR . '/inc/post-meta.php';   // Campi dell'articolo e dell'autore.
 require ZW_DIR . '/inc/content.php';     // Filtri sul testo dell'articolo, breadcrumb, podcast.
 require ZW_DIR . '/inc/video.php';       // Pagina dei video: player grande, dati del video, correlati.
 require ZW_DIR . '/inc/seo.php';         // Meta description e anteprime social (se manca un plugin SEO).
+require ZW_DIR . '/inc/schema.php';      // Dati strutturati: testata, articoli, autori.

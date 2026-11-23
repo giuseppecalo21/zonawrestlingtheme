@@ -184,6 +184,10 @@ function zw_image( $id, $width, $attrs = array() ) {
 	if ( ! empty( $attrs['fetchpriority'] ) ) {
 		$out['fetchpriority'] = $attrs['fetchpriority'];
 		$out['loading']       = 'eager';
+		// Immagine principale (LCP): nessuna decodifica "async" che possa ritardarne la comparsa.
+		if ( 'high' === $attrs['fetchpriority'] ) {
+			unset( $out['decoding'] );
+		}
 	}
 
 	$html = '<img';
@@ -245,7 +249,14 @@ function zw_fragment( $key, $ttl, $callback ) {
 function zw_flush_fragments() {
 	update_option( 'zw_frag_v', (string) microtime( true ), true );
 	delete_transient( 'zw_event_tag_map' );
+	// Senza object cache persistente (Redis/Memcached) i blocchi della versione precedente
+	// restano in wp_options fino alla pulizia giornaliera di WordPress: una pulizia dei soli
+	// transient scaduti, 20 minuti dopo (quando sono scaduti tutti), li toglie prima.
+	if ( ! wp_using_ext_object_cache() && ! wp_next_scheduled( 'zw_purge_expired_transients' ) ) {
+		wp_schedule_single_event( time() + 20 * MINUTE_IN_SECONDS, 'zw_purge_expired_transients' );
+	}
 }
+add_action( 'zw_purge_expired_transients', 'delete_expired_transients' );
 
 add_action( 'transition_post_status', function ( $new, $old, $post ) {
 	if ( in_array( $post->post_type, array( 'post', 'zw_event' ), true ) && ( 'publish' === $new || 'publish' === $old ) ) {
