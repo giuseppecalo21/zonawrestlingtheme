@@ -20,7 +20,7 @@ SITE = os.environ.get("ZW_TEST_SITE", "https://test.giuseppe.rocks/zonawrestling
 OFFERS = sys.argv[1] if len(sys.argv) > 1 else "10418"
 NAMES = sys.argv[2] if len(sys.argv) > 2 else "10416"
 KEEP = ("CatalogItemId", "Name", "Category", "SubCategory", "CurrentPrice", "OriginalPrice",
-        "Currency", "Url", "ImageUrl", "StockAvailability")
+        "Currency", "Url", "ImageUrl", "StockAvailability", "AgeGroup")
 
 imp = requests.Session()
 imp.headers["Accept"] = "application/json"

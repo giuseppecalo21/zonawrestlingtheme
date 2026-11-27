@@ -128,7 +128,8 @@ function zw_shop_store_offers( array $items, $run ) {
 	foreach ( $items as $it ) {
 		$id = isset( $it['CatalogItemId'] ) ? substr( sanitize_text_field( $it['CatalogItemId'] ), 0, 32 ) : '';
 		// Solo merchandise WWE (il catalogo contiene anche collaborazioni con squadre di calcio e NFL).
-		if ( '' === $id || ( isset( $it['Category'] ) && 'WWE' !== $it['Category'] ) || empty( $it['Url'] ) ) {
+		// Niente prodotti per bambini (campo AgeGroup "Kids"): non sono il pubblico del sito.
+		if ( '' === $id || ( isset( $it['Category'] ) && 'WWE' !== $it['Category'] ) || empty( $it['Url'] ) || ( isset( $it['AgeGroup'] ) && 'Kids' === $it['AgeGroup'] ) ) {
 			continue;
 		}
 		$wrestler = sanitize_text_field( isset( $it['SubCategory'] ) ? $it['SubCategory'] : '' );
@@ -172,6 +173,11 @@ function zw_shop_store_names( array $items ) {
 			if ( '' === $id || empty( $it['Name'] ) ) {
 				continue;
 			}
+			// Prodotti per bambini classificati male: si riconoscono dal nome inglese.
+			if ( zw_shop_is_kids_name( $it['Name'] ) ) {
+				$wpdb->delete( $table, array( 'item_id' => $id ) );
+				continue;
+			}
 			$names[] = $wpdb->prepare( 'WHEN %s THEN %s', $id, sanitize_text_field( $it['Name'] ) );
 			$urls[]  = $wpdb->prepare( 'WHEN %s THEN %s', $id, esc_url_raw( isset( $it['Url'] ) ? $it['Url'] : '' ) );
 			$ids[]   = $wpdb->prepare( '%s', $id );
@@ -181,6 +187,11 @@ function zw_shop_store_names( array $items ) {
 		}
 	}
 	return $n;
+}
+
+/** Nome inglese di un prodotto per bambini ("Baby" escluso: c'è la linea Bape "Baby Milo" per adulti). */
+function zw_shop_is_kids_name( $name ) {
+	return (bool) preg_match( '/\b(youth|kids?|toddlers?|infants?|newborn|preschool)\b/i', (string) $name );
 }
 
 /** Fine aggiornamento: via i prodotti non più in catalogo. */

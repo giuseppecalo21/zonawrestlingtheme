@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ZW WWE Shop
  * Description: Prodotti ufficiali di WWE Shop (affiliazione Impact) dentro gli articoli, scelti in base ai tag: un riquadro a metà testo con il merchandise dei wrestler di cui parla la notizia.
- * Version: 0.1.1
+ * Version: 0.1.2
  * Requires PHP: 7.4
  * Author: Zona Wrestling
  * Text Domain: zw-wwe-shop
@@ -10,7 +10,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'ZW_SHOP_VERSION', '0.1.1' );
+define( 'ZW_SHOP_VERSION', '0.1.2' );
 define( 'ZW_SHOP_DB_VERSION', '1' );
 define( 'ZW_SHOP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ZW_SHOP_URL', plugin_dir_url( __FILE__ ) );
