@@ -28,11 +28,13 @@ function zw_shop_install_db() {
 		url text NOT NULL,
 		url_en text NOT NULL,
 		image text NOT NULL,
+		product_type varchar(20) NOT NULL DEFAULT '',
 		in_stock tinyint(1) NOT NULL DEFAULT 1,
 		run_id varchar(20) NOT NULL DEFAULT '',
 		PRIMARY KEY  (item_id),
 		KEY wrestler_key (wrestler_key),
-		KEY run_id (run_id)
+		KEY run_id (run_id),
+		KEY product_type (product_type)
 	) {$charset};" );
 	update_option( 'zw_shop_db_version', ZW_SHOP_DB_VERSION, false );
 }
@@ -61,6 +63,48 @@ function zw_shop_stats() {
 		'with_name' => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE name_en <> ''" ),
 		'wrestlers' => (int) $wpdb->get_var( "SELECT COUNT(DISTINCT wrestler_key) FROM {$table}" ),
 	);
+}
+
+/**
+ * Condizioni SQL dei filtri scelti nelle impostazioni (tipi, saldi, prezzo, parole escluse).
+ * Valgono sia per scegliere i wrestler sia per pescare i prodotti.
+ */
+function zw_shop_filter_sql() {
+	global $wpdb;
+	$where = array( "name_en <> ''", 'in_stock = 1', 'price > 0' );
+	$types = array_intersect( (array) zw_shop_setting( 'types' ), array_keys( zw_shop_types() ) );
+	if ( ! $types ) {
+		return '1 = 0';
+	}
+	$where[] = 'product_type IN (' . implode( ',', array_map( function ( $t ) use ( $wpdb ) {
+		return $wpdb->prepare( '%s', $t );
+	}, $types ) ) . ')';
+	if ( zw_shop_setting( 'only_sale' ) ) {
+		$where[] = 'original_price > price + 0.009';
+	}
+	if ( (float) zw_shop_setting( 'min_price' ) > 0 ) {
+		$where[] = $wpdb->prepare( 'price >= %f', (float) zw_shop_setting( 'min_price' ) );
+	}
+	if ( (float) zw_shop_setting( 'max_price' ) > 0 ) {
+		$where[] = $wpdb->prepare( 'price <= %f', (float) zw_shop_setting( 'max_price' ) );
+	}
+	foreach ( zw_shop_lines( zw_shop_setting( 'exclude_words' ) ) as $word ) {
+		$where[] = $wpdb->prepare( 'name_en NOT LIKE %s', '%' . $wpdb->esc_like( $word ) . '%' );
+	}
+	return implode( ' AND ', $where );
+}
+
+/** Prodotti per tipo (tutti, e quanti passano i filtri), per la pagina impostazioni. */
+function zw_shop_type_counts() {
+	global $wpdb;
+	$table = zw_shop_table();
+	return $wpdb->get_results( "SELECT product_type, COUNT(*) AS n FROM {$table} WHERE name_en <> '' AND in_stock = 1 GROUP BY product_type", OBJECT_K ) ?: array(); // phpcs:ignore
+}
+
+function zw_shop_filtered_count() {
+	global $wpdb;
+	$table = zw_shop_table();
+	return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE " . zw_shop_filter_sql() ); // phpcs:ignore
 }
 
 /** Elenco wrestler => numero di prodotti (per la pagina impostazioni). */

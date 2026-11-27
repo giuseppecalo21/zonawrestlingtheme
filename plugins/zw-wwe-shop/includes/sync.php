@@ -167,6 +167,7 @@ function zw_shop_store_names( array $items ) {
 	foreach ( array_chunk( $items, 200 ) as $chunk ) {
 		$names = array();
 		$urls  = array();
+		$types = array();
 		$ids   = array();
 		foreach ( $chunk as $it ) {
 			$id = isset( $it['CatalogItemId'] ) ? substr( sanitize_text_field( $it['CatalogItemId'] ), 0, 32 ) : '';
@@ -179,11 +180,12 @@ function zw_shop_store_names( array $items ) {
 				continue;
 			}
 			$names[] = $wpdb->prepare( 'WHEN %s THEN %s', $id, sanitize_text_field( $it['Name'] ) );
+			$types[] = $wpdb->prepare( 'WHEN %s THEN %s', $id, zw_shop_product_type( $it['Name'], isset( $it['Url'] ) ? $it['Url'] : '' ) );
 			$urls[]  = $wpdb->prepare( 'WHEN %s THEN %s', $id, esc_url_raw( isset( $it['Url'] ) ? $it['Url'] : '' ) );
 			$ids[]   = $wpdb->prepare( '%s', $id );
 		}
 		if ( $ids ) {
-			$n += (int) $wpdb->query( "UPDATE {$table} SET name_en = CASE item_id " . implode( ' ', $names ) . ' ELSE name_en END, url_en = CASE item_id ' . implode( ' ', $urls ) . ' ELSE url_en END WHERE item_id IN (' . implode( ',', $ids ) . ')' ); // phpcs:ignore
+			$n += (int) $wpdb->query( "UPDATE {$table} SET name_en = CASE item_id " . implode( ' ', $names ) . ' ELSE name_en END, url_en = CASE item_id ' . implode( ' ', $urls ) . ' ELSE url_en END, product_type = CASE item_id ' . implode( ' ', $types ) . ' ELSE product_type END WHERE item_id IN (' . implode( ',', $ids ) . ')' ); // phpcs:ignore
 		}
 	}
 	return $n;

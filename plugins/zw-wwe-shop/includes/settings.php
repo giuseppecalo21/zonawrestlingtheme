@@ -26,6 +26,11 @@ function zw_shop_defaults() {
 		'name_catalog'  => '10416', // nomi in inglese
 		'landing'       => 'en_eur', // en_eur = EuroShop in inglese con euro | catalog = link del catalogo prezzi
 		'count'         => 4,
+		'types'         => array( 'tshirt', 'hoodie', 'apparel', 'headwear', 'figure', 'belt', 'autograph', 'photo' ),
+		'only_sale'     => 0,
+		'min_price'     => 0,
+		'max_price'     => 0,
+		'exclude_words' => '',
 		'paragraph'     => 0, // 0 = a metà articolo, N = dopo il paragrafo N
 		'aliases'       => "undertaker = The Undertaker\nStone Cold = \"Stone Cold\" Steve Austin\nSteve Austin = \"Stone Cold\" Steve Austin\nMonday Night RAW = Raw\nFriday Night Smackdown = SmackDown\nSmackdown Live = SmackDown\nFinn Balor = Finn Bálor\nBloodline = The Bloodline",
 		'ignored'       => "WWE Merchandise",

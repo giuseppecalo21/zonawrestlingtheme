@@ -68,7 +68,8 @@ function zw_shop_insert( $content, $box, $after = 0 ) {
 /** HTML del riquadro, o stringa vuota se non ci sono prodotti adatti. */
 function zw_shop_box( $post ) {
 	$pick = zw_shop_pick_products( $post );
-	if ( ! $pick['products'] ) {
+	// Con filtri stretti può restare un solo prodotto: meglio nessun riquadro.
+	if ( count( $pick['products'] ) < 2 ) {
 		return '';
 	}
 

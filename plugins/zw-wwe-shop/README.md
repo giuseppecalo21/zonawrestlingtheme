@@ -14,6 +14,8 @@ Plugin (non fa parte del tema) che mostra a metà articolo un riquadro con 4 pro
 - **Posizione**: a metà dei paragrafi "di primo livello", cioè non dentro citazioni, embed, tabelle o liste. Mai prima del secondo paragrafo e mai subito dopo un paragrafo che finisce con i due punti. Negli articoli con meno di 3 paragrafi va in fondo.
 - **Destinazione**: EuroShop in inglese con prezzi in euro, cioè il link del catalogo britannico con `cur=EUR` al posto di `cur=GBP&loc=en-GB`. Indirizzo provato da Giuseppe dal telefono il 27/11/2026. La versione `euroshop2.wwe.com/en/` invece non funziona. Spedizione verso l'Italia segnalata da Giuseppe: circa 10 € (10 giorni) o circa 30 € (espressa).
 - **Link**: `rel="sponsored nofollow noopener"`, nuova scheda, avviso di affiliazione sotto i prodotti. Le foto arrivano dal server di Fanatics a 300/600 px, con `loading="lazy"`. Il CSS (circa 2 KB) è in linea, solo negli articoli.
+- **Filtri** (Impostazioni → WWE Shop, valgono per tutto il sito): tipi di prodotto, solo saldi, prezzo minimo/massimo, parole da escludere. Il tipo non c'è nel catalogo: lo ricava `includes/types.php` dal nome inglese e dalla sezione del negozio nell'indirizzo. Tipi esclusi di serie: cover per telefono (circa 2.250 prodotti), casa e gadget, carte collezionabili, cinture delle squadre sportive ("WWE x Juventus Legacy Title Belt" e simili), altro. Se restano meno di 2 prodotti il riquadro non compare. Il catalogo non dice quali prodotti si vendono di più.
+- **Foto**: non vengono scaricate sul sito. Sono collegamenti alle immagini sul server di Fanatics (`feeds.frgimages.com`), ridimensionate da loro.
 - **Nell'editor**: riquadro laterale "Prodotti WWE Shop" per spegnerlo in un articolo o scegliere i wrestler a mano.
 
 ## Messa in produzione

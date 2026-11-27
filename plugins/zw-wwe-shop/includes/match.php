@@ -54,7 +54,7 @@ function zw_shop_post_wrestlers( $post ) {
 	$in    = implode( ',', array_map( function ( $k ) use ( $wpdb ) {
 		return $wpdb->prepare( '%s', $k );
 	}, array_keys( $wanted ) ) );
-	$found = $wpdb->get_results( "SELECT wrestler_key, MAX(wrestler) AS wrestler FROM {$table} WHERE wrestler_key IN ({$in}) AND name_en <> '' AND in_stock = 1 GROUP BY wrestler_key", OBJECT_K ); // phpcs:ignore
+	$found = $wpdb->get_results( "SELECT wrestler_key, MAX(wrestler) AS wrestler FROM {$table} WHERE wrestler_key IN ({$in}) AND " . zw_shop_filter_sql() . " GROUP BY wrestler_key", OBJECT_K ); // phpcs:ignore
 	if ( ! $found ) {
 		return array( 'keys' => array(), 'generic' => false );
 	}
@@ -98,14 +98,15 @@ function zw_shop_pick_products( $post, $count = null ) {
 	$keys  = array_slice( $match['keys'], 0, $count ); // non più wrestler che prodotti
 	$seed  = abs( crc32( $post->ID . '|' . wp_date( 'Ymd' ) ) ) % 2147483647;
 	$table = zw_shop_table();
-	$pools = array();
+	$pools  = array();
+	$filter = zw_shop_filter_sql();
 	foreach ( $keys as $i => $key ) {
-		$pools[ $key ] = $wpdb->get_results( $wpdb->prepare(
-			"SELECT item_id, wrestler, name_en, price, original_price, currency, url, url_en, image FROM {$table} WHERE wrestler_key = %s AND name_en <> '' AND in_stock = 1 AND price > 0 ORDER BY RAND(%d) LIMIT %d", // phpcs:ignore
-			$key,
-			$seed + $i,
-			$count * 3
-		) );
+		// I filtri sono già preparati (e possono contenere % dei LIKE): si aggiungono dopo prepare().
+		$pools[ $key ] = $wpdb->get_results(
+			$wpdb->prepare( "SELECT item_id, wrestler, name_en, price, original_price, currency, url, url_en, image FROM {$table} WHERE wrestler_key = %s AND ", $key ) // phpcs:ignore
+			. $filter
+			. $wpdb->prepare( ' ORDER BY RAND(%d) LIMIT %d', $seed + $i, $count * 3 )
+		);
 	}
 
 	// A turno dai wrestler, saltando i doppioni (stessa maglia uomo/donna/bambino).

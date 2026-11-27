@@ -27,8 +27,12 @@ add_action( 'admin_post_zw_shop_save', function () {
 		'landing'       => ( isset( $in['landing'] ) && 'en_eur' === $in['landing'] ) ? 'en_eur' : 'catalog',
 		'count'         => max( 2, min( 8, (int) ( isset( $in['count'] ) ? $in['count'] : 4 ) ) ),
 		'paragraph'     => max( 0, min( 30, (int) ( isset( $in['paragraph'] ) ? $in['paragraph'] : 0 ) ) ),
+		'types'         => array_values( array_intersect( isset( $in['types'] ) ? (array) $in['types'] : array(), array_keys( zw_shop_types() ) ) ),
+		'only_sale'     => empty( $in['only_sale'] ) ? 0 : 1,
+		'min_price'     => max( 0, (float) str_replace( ',', '.', isset( $in['min_price'] ) ? $in['min_price'] : 0 ) ),
+		'max_price'     => max( 0, (float) str_replace( ',', '.', isset( $in['max_price'] ) ? $in['max_price'] : 0 ) ),
 	);
-	foreach ( array( 'aliases', 'ignored', 'generic' ) as $k ) {
+	foreach ( array( 'aliases', 'ignored', 'generic', 'exclude_words' ) as $k ) {
 		$new[ $k ] = sanitize_textarea_field( isset( $in[ $k ] ) ? $in[ $k ] : '' );
 	}
 	foreach ( array( 'title_one', 'title_many', 'title_generic', 'disclosure' ) as $k ) {
@@ -95,6 +99,15 @@ function zw_shop_admin_page() {
 					<label><input type="radio" name="landing" value="en_eur" <?php checked( $s['landing'], 'en_eur' ); ?>> EuroShop in inglese con prezzi in euro (consigliato)</label>
 				</td></tr>
 				<tr><th scope="row"><label for="count">Prodotti nel riquadro</label></th><td><input type="number" id="count" name="count" min="2" max="8" value="<?php echo (int) $s['count']; ?>" class="small-text"></td></tr>
+				<tr><th scope="row">Tipi di prodotto</th><td><fieldset>
+					<?php $tc = zw_shop_type_counts(); foreach ( zw_shop_types() as $t => $label ) : ?>
+						<label style="display:block;margin:0 0 4px"><input type="checkbox" name="types[]" value="<?php echo esc_attr( $t ); ?>" <?php checked( in_array( $t, (array) $s['types'], true ) ); ?>> <?php echo esc_html( $label ); ?> <span style="color:#646970">(<?php echo isset( $tc[ $t ] ) ? (int) $tc[ $t ]->n : 0; ?>)</span></label>
+					<?php endforeach; ?>
+					<p class="description">Tra parentesi i prodotti disponibili di ogni tipo. Il tipo è ricavato dal nome inglese del prodotto. Con i filtri attuali passano <strong><?php echo esc_html( number_format_i18n( zw_shop_filtered_count() ) ); ?></strong> prodotti.</p>
+				</fieldset></td></tr>
+				<tr><th scope="row">Solo saldi</th><td><label><input type="checkbox" name="only_sale" value="1" <?php checked( $s['only_sale'] ); ?>> Mostra solo prodotti scontati</label></td></tr>
+				<tr><th scope="row">Prezzo</th><td>da <input type="text" name="min_price" value="<?php echo $s['min_price'] ? esc_attr( $s['min_price'] ) : ''; ?>" class="small-text" inputmode="decimal"> € a <input type="text" name="max_price" value="<?php echo $s['max_price'] ? esc_attr( $s['max_price'] ) : ''; ?>" class="small-text" inputmode="decimal"> € <p class="description">Vuoto = nessun limite.</p></td></tr>
+				<tr><th scope="row"><label for="exclude_words">Parole da escludere</label></th><td><textarea id="exclude_words" name="exclude_words" rows="3" class="large-text code"><?php echo esc_textarea( $s['exclude_words'] ); ?></textarea><p class="description">Una per riga, cercata nel nome inglese del prodotto (es. <code>Funko</code>, <code>Towel</code>).</p></td></tr>
 				<tr><th scope="row"><label for="paragraph">Posizione</label></th><td>dopo il paragrafo <input type="number" id="paragraph" name="paragraph" min="0" max="30" value="<?php echo (int) $s['paragraph']; ?>" class="small-text"><p class="description">0 = a metà articolo. Negli articoli con meno di 3 paragrafi il riquadro va in fondo.</p></td></tr>
 				<tr><th scope="row"><label for="aliases">Corrispondenze tag → wrestler</label></th><td><textarea id="aliases" name="aliases" rows="8" class="large-text code"><?php echo esc_textarea( $s['aliases'] ); ?></textarea><p class="description">Una per riga: <code>tag = nome nel catalogo</code>. Servono quando il tag del sito è scritto diversamente (es. <code>undertaker = The Undertaker</code>).</p></td></tr>
 				<tr><th scope="row"><label for="ignored">Da ignorare</label></th><td><textarea id="ignored" name="ignored" rows="3" class="large-text code"><?php echo esc_textarea( $s['ignored'] ); ?></textarea><p class="description">Tag o categorie del catalogo da non usare mai, uno per riga.</p></td></tr>
