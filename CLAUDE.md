@@ -34,6 +34,8 @@ Leggi anche `README.md` (compatibilità con Newspaper, checklist del passaggio) 
 
 ## Fatto di recente
 
+- **Affiliazione WWE Shop** (27/11/2026): plugin `plugins/zw-wwe-shop/`, **v1.0.0 definitiva: non toccarla se Giuseppe non lo chiede**. Plugin a parte, non incluso nel tema; sullo staging è attivo. Da installare in produzione quando lo decide Giuseppe. Prodotti a metà articolo scelti dai tag; catalogo da Impact (campagna WWE Shop, contratto attivo). Credenziali API Impact salvate nell'ambiente cloud (host `api.impact.com`), mai nel codice. Dettagli nel README del plugin.
+
 - Stories in home configurabili: Aspetto → Stories in home (`inc/stories.php`). Gli stessi blocchi guidano i filtri del feed e i link del footer.
 - Audit pre-lancio:
   - LCP della home: il carosello delle analisi scattava al caricamento e bloccava la misura (`scroll-px-6` in `analyses.php`);
@@ -46,6 +48,8 @@ Leggi anche `README.md` (compatibilità con Newspaper, checklist del passaggio) 
   - pulizia dei transient.
 
 ## Aperto
+
+- WWE Shop: link verso EuroShop in inglese con euro (verificato da Giuseppe). Spedizione in Italia cara (circa 10 €, 10 giorni; circa 30 € espressa): chiedere a Fanatics eventuali promozioni sulla spedizione.
 
 - Da verificare in produzione: banner Clickio con il reset CSS di Tailwind; che il preload LCP di WP Rocket usi la stessa variante del `srcset`; esclusione del cookie di anteprima da WP Rocket **e** da Varnish.
 - Da decidere con Giuseppe: `noindex` sui tag con pochi articoli; copertina leggera anche per gli embed di X/Instagram; creazione di `main` e pulizia dei branch vecchi.
