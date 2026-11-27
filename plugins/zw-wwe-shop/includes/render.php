@@ -103,14 +103,15 @@ function zw_shop_box( $post ) {
 		. '</aside>';
 }
 
-/** Link affiliato del prodotto (con l'opzione sperimentale "inglese con euro"). */
+/** Link affiliato: EuroShop in inglese con prezzi in euro (link britannico + cur=EUR), oppure quello del catalogo prezzi. */
 function zw_shop_link( $p ) {
 	if ( 'en_eur' === zw_shop_setting( 'landing' ) && ! empty( $p->url_en ) ) {
 		$parts = wp_parse_url( $p->url_en );
 		if ( ! empty( $parts['query'] ) ) {
 			parse_str( $parts['query'], $q );
 			if ( ! empty( $q['u'] ) ) {
-				$q['u'] = add_query_arg( 'cur', 'EUR', remove_query_arg( 'cur', $q['u'] ) );
+				// Stesso indirizzo provato da Giuseppe il 27/11/2026: inglese, prezzi in euro.
+				$q['u'] = add_query_arg( 'cur', 'EUR', remove_query_arg( array( 'cur', 'loc' ), $q['u'] ) );
 				return $parts['scheme'] . '://' . $parts['host'] . $parts['path'] . '?' . http_build_query( $q, '', '&', PHP_QUERY_RFC3986 );
 			}
 		}

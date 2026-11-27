@@ -24,7 +24,7 @@ function zw_shop_defaults() {
 		'auth_token'    => '',
 		'offer_catalog' => '10418', // prezzi in euro, link e foto
 		'name_catalog'  => '10416', // nomi in inglese
-		'landing'       => 'catalog', // catalog | en_eur (sperimentale)
+		'landing'       => 'en_eur', // en_eur = EuroShop in inglese con euro | catalog = link del catalogo prezzi
 		'count'         => 4,
 		'paragraph'     => 0, // 0 = a metà articolo, N = dopo il paragrafo N
 		'aliases'       => "undertaker = The Undertaker\nStone Cold = \"Stone Cold\" Steve Austin\nSteve Austin = \"Stone Cold\" Steve Austin\nMonday Night RAW = Raw\nFriday Night Smackdown = SmackDown\nSmackdown Live = SmackDown\nFinn Balor = Finn Bálor\nBloodline = The Bloodline",
