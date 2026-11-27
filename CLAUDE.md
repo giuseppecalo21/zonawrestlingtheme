@@ -34,7 +34,7 @@ Leggi anche `README.md` (compatibilità con Newspaper, checklist del passaggio) 
 
 ## Fatto di recente
 
-- **Affiliazione WWE Shop** (27/11/2026): plugin `plugins/zw-wwe-shop/`, **v1.0.0 definitiva: non toccarla se Giuseppe non lo chiede**. Plugin a parte, non incluso nel tema; sullo staging è attivo. Da installare in produzione quando lo decide Giuseppe con prodotti a metà articolo scelti dai tag; catalogo da Impact (campagna WWE Shop, contratto attivo). Credenziali API Impact salvate nell'ambiente cloud (host `api.impact.com`), mai nel codice. Dettagli nel README del plugin.
+- **Affiliazione WWE Shop** (27/11/2026): plugin `plugins/zw-wwe-shop/`, **v1.0.0 definitiva: non toccarla se Giuseppe non lo chiede**. Plugin a parte, non incluso nel tema; sullo staging è attivo. Da installare in produzione quando lo decide Giuseppe. Prodotti a metà articolo scelti dai tag; catalogo da Impact (campagna WWE Shop, contratto attivo). Credenziali API Impact salvate nell'ambiente cloud (host `api.impact.com`), mai nel codice. Dettagli nel README del plugin.
 
 - Stories in home configurabili: Aspetto → Stories in home (`inc/stories.php`). Gli stessi blocchi guidano i filtri del feed e i link del footer.
 - Audit pre-lancio:
