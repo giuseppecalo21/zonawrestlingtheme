@@ -10,6 +10,7 @@ Strumenti per provare il tema su **https://test.giuseppe.rocks/zonawrestling/** 
   - `POST /wp-json/zw-deploy/v1/plugin?slug=…&activate=1` — installa o aggiorna un plugin (anche se stesso);
   - `GET|POST /wp-json/zw-deploy/v1/meta` — legge e scrive campi personalizzati di un post;
   - nelle sue richieste il tema non viene caricato: anche con un tema rotto si può sempre ricaricarne uno buono.
+- Sul sito è attivo **ZW WWE Shop** (`plugins/zw-wwe-shop/`, plugin vero, non solo di prova): prodotti affiliati WWE Shop a metà articolo. Si aggiorna con `curl -X POST -H "Content-Type: application/zip" --data-binary @dist/zw-wwe-shop.zip "$SITE/wp-json/zw-deploy/v1/plugin?slug=zw-wwe-shop&activate=1"`.
 - Sul sito è attivo anche **ZW Events (sostituto)** (`dev/zw-events-stub/`): registra `zw_event`, `zw_federation` e i campi `_zw_event_*` come il plugin vero ZW Events Calendar, e aggiunge al testo i riquadri "Dettagli evento" / "Tutte le news" con lo stesso HTML. In produzione resta il plugin vero.
 
 ## Comandi
@@ -21,6 +22,7 @@ python3 dev/import-posts.py   # copia articoli recenti da zonawrestling.net (sal
 python3 dev/import-meta.py    # copia sottotitoli e valutazioni (td_post_theme_settings) dalle pagine pubbliche
 python3 dev/import-events.py  # copia gli eventi pubblici e gli articoli con i tag collegati
 python3 dev/import-live.py    # copia gli aggiornamenti delle dirette (plugin WP Wrestling Live Pro): non stanno nel testo
+python3 dev/import-shop.py    # carica il catalogo WWE Shop (Impact) nel plugin ZW WWE Shop
 ```
 
 Dopo aver modificato classi Tailwind nei template: `npm run build` prima del deploy.
