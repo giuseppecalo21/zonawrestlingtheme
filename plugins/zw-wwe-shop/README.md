@@ -1,5 +1,7 @@
 # ZW WWE Shop
 
+**Versione 1.0.0, definitiva (27/11/2026).** Approvata da Giuseppe: non va modificata se non è lui a chiederlo. È un plugin a parte, fuori dal tema, così l'affiliazione resta anche se il tema cambia.
+
 Plugin (non fa parte del tema) che mostra a metà articolo un riquadro con 4 prodotti ufficiali di WWE Shop, scelti in base ai tag. I link sono di affiliazione: campagna **WWE Shop** su **Impact** (8% su Stati Uniti, Canada, Regno Unito, Europa e resto del mondo; cookie di 7 giorni).
 
 ## Come funziona
